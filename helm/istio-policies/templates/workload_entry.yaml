@@ -1,0 +1,34 @@
+{{- range $we := .Values.workload_entries -}}
+---
+apiVersion: networking.istio.io/v1
+kind: WorkloadEntry
+metadata:
+  name: {{ required "Workload entry name is required." $we.name }}
+  {{- if $we.namespace }}
+  namespace: {{ $we.namespace }}
+  {{- end }}
+spec:
+  {{- if $we.address }}
+  address: {{ $we.address }}
+  {{- end }}
+  {{- if $we.ports }}
+  ports:
+  {{- toYaml $we.ports | nindent 4 }}
+  {{- end }}
+  {{- if $we.labels }}
+  labels:
+  {{- toYaml $we.labels | nindent 4 }}
+  {{- end }}
+  {{- if $we.network }}
+  network: {{ $we.network }}
+  {{- end }}
+  {{- if $we.locality }}
+  locality: {{ $we.locality }}
+  {{- end }}
+  {{- if $we.weight }}
+  weight: {{ $we.weight }}
+  {{- end }}
+  {{- if $we.serviceAccount }}
+  serviceAccount: {{ $we.serviceAccount }}
+  {{- end }}
+{{ end }}

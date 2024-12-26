@@ -1,0 +1,23 @@
+{{- range $pa := .Values.peer_authentications -}}
+---
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: {{ required "Peer authentication name is required." $pa.name }}
+  {{- if $pa.namespace }}
+  namespace: {{ $pa.namespace }}
+  {{- end }}
+spec:
+  {{- if $pa.selector }}
+  selector:
+  {{- toYaml $pa.selector | nindent 4 }}
+  {{- end }}
+  {{- if $pa.mtls }}
+  mtls:
+  {{- toYaml $pa.mtls | nindent 4 }}
+  {{- end }}
+  {{- if $pa.portLevelMtls }}
+  portLevelMtls:
+  {{- toYaml $pa.portLevelMtls | nindent 4 }}
+  {{- end }}
+{{ end }}

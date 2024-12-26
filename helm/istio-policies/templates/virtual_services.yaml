@@ -1,0 +1,58 @@
+{{- range $vs := .Values.virtual_services -}}
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: {{ required "VirtualService name is required." $vs.name }}
+  {{- if $vs.namespace }}
+  namespace: {{ $vs.namespace }}
+  {{- end }}
+spec:
+  {{- if $vs.gateways }}
+  gateways:
+    {{- toYaml $vs.gateways | nindent 4 }}
+  {{- end }}
+  {{- if $vs.hosts }}
+  hosts:
+    {{- toYaml $vs.hosts | nindent 4 }}
+  {{- end }}
+  {{- if $vs.http }}
+  http:
+    {{- range $httproute := $vs.http }}
+      {{- range $httproutedestination := $httproute.route }}
+        {{- if not $httproutedestination.destination }}{{ fail "http route destination field is required." }}{{ end }}
+        {{- if not $httproutedestination.destination.host }}{{ fail "http route destination host field is required." }}{{ end }}
+      {{- end }}
+      {{- if and $httproute.directResponse (not $httproute.directResponse.status) }}{{ fail "http directResponse status field is required." }}{{ end }}
+      {{- if and $httproute.mirror (not $httproute.mirror.host) }}{{ fail "http mirror host field is required." }}{{ end }}
+      {{- range $httpmirrorpolicy := $httproute.mirrors }}
+        {{- if not $httpmirrorpolicy.destination.host }}{{ fail "http mirrors destination host field is required." }}{{ end }}
+      {{- end }}
+    {{- end }}
+    {{- toYaml $vs.http | nindent 4 }}
+  {{- end }}
+  {{- if $vs.tls }}
+  tls:
+    {{- range $tlsroute := $vs.tls }}
+      {{- if not $tlsroute.match }}{{ fail "tls match field is required." }}{{ end }}
+      {{- range $tlsmatch := $tlsroute.match }}
+        {{- if not $tlsmatch.sniHosts }}{{ fail "tls match sniHosts field is required." }}{{ end }}
+      {{- end }}
+      {{- range $tlsroutedestinaion := $tlsroute.route }}
+        {{- if not $tlsroutedestinaion.destination }}{{ fail "tls route destination field is required." }}{{ end }}
+        {{- if not $tlsroutedestinaion.destination.host }}{{ fail "tls route destination host field is required." }}{{ end }}
+      {{- end }}
+    {{- end }}
+  {{- toYaml $vs.tls | nindent 4 }}
+  {{- end }}
+  {{- if $vs.tcp }}
+  tcp:
+    {{- range $tcproute := $vs.tcp }}
+      {{- range $tcproutedestination := $tcproute.route }}
+        {{- if not $tcproutedestination.destination }}{{ fail "tcp route destination field is required." }}{{ end }}
+        {{- if not $tcproutedestination.destination.host }}{{ fail "tcp route destination host field is required." }}{{ end }}
+      {{- end }}
+    {{- end }}
+  {{- toYaml $vs.tcp | nindent 4 }}
+  {{- end }}
+{{ end -}}

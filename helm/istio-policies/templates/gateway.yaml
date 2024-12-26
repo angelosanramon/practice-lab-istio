@@ -1,0 +1,28 @@
+{{- range $gateway := .Values.gateways -}}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ required "Gateway name is required." $gateway.name }}
+  {{- if $gateway.namespace }}
+  namespace: {{ $gateway.namespace }}
+  {{- end }}
+spec:
+  {{- if $gateway.selector }}
+  selector:
+    {{- toYaml $gateway.selector | nindent 4 }}
+  {{- end }}
+  {{- if $gateway.servers }}
+    {{- range $server := $gateway.servers }}
+      {{- if not $server.port }}{{ fail "Server port field is required."}}{{ end }}
+      {{- if not $server.port.name }}{{ fail "Server port name field is required." }}{{ end }}
+      {{- if not $server.port.number }}{{ fail "Server port number field is required." }}{{ end }}
+      {{- if not $server.port.protocol }}{{ fail "Server port protocol field is required." }}{{ end }}
+      {{- $protocol := list "HTTP" "HTTPS" "GRPC" "GRPC-WEB" "HTTP2" "MONGO" "TCP" "TLS" }}
+      {{- if not (has $server.port.protocol $protocol) }}{{ fail "Invalid Server port protocol. Must be HTTP|HTTPS|GRPC|GRPC-WEB|HTTP2|MONGO|TCP|TLS" }}{{ end }}
+      {{- if not $server.hosts }}{{ fail "Server hosts field is required."}}{{ end }}
+    {{- end }}
+  servers:
+    {{- toYaml $gateway.servers | nindent 6 }}
+  {{- end }}
+{{ end -}}

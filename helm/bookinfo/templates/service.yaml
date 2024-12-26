@@ -1,0 +1,18 @@
+{{- range $appName := list "details" "productpage" "ratings" "reviews" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "bookinfo.fullname" (list $ $appName "") }}
+  labels:
+    {{- include "bookinfo.labels" (list $ $appName "") | nindent 4 }}
+spec:
+  type: {{ dig $appName "service" "type" $.Values.service.type ($.Values | merge dict) }}
+  ports:
+    - port: {{ dig $appName "service" "port" $.Values.service.port ($.Values | merge dict) }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "bookinfo.selectorLabels" (list $ $appName "") | nindent 4 }}
+{{ end }}

@@ -1,0 +1,38 @@
+{{- range $ap := .Values.authorization_policies -}}
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ required "Authorization policy name is required." $ap.name }}
+  {{- if $ap.namespace }}
+  namespace: {{ $ap.namespace }}
+  {{- end }}
+spec:
+  {{- if $ap.selector }}
+  selector:
+  {{- toYaml $ap.selector | nindent 4 }}
+  {{- end }}
+  {{- if $ap.targetRefs }}
+    {{- range $tr := $ap.targetRefs }}
+      {{- if not $tr.kind }}{{ fail "Authorization policy targetRef kind field is required." }}{{ end }}
+    {{- end }}
+  targetRefs:
+  {{- toYaml $ap.targetRefs | nindent 4 }}
+  {{- end }}
+  {{- if $ap.rules }}
+    {{- range $rule := $ap.rules }}
+      {{- range $when := $rule.when }}
+        {{- if not $when.key }}{{ fail "Authorization policy rule when key field is required." }}{{ end }}
+      {{- end }}
+    {{- end }}
+  rules:
+  {{- toYaml $ap.rules | nindent 4 }}
+  {{- end }}
+  {{- if $ap.action }}
+  action: {{ $ap.action }}
+  {{- end }}
+  {{- if $ap.provider }}
+  provider:
+  {{- toYaml $ap.provider | nindent 4 }}
+  {{- end }}
+{{ end }}

@@ -1,0 +1,48 @@
+{{- range $se := .Values.service_entries -}}
+---
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: {{ required "Service entry name is required." $se.name }}
+  {{- if $se.namespace }}
+  namespace: {{ $se.namespace }}
+  {{- end }}
+spec:
+  {{- if $se.workloadSelector }}
+  workloadSelector:
+  {{- toYaml $se.workloadSelector | nindent 4 }}
+  {{- end }}
+  {{- if not $se.hosts }}{{ fail "Service entry hosts field is required." }}{{ end }}
+  hosts:
+  {{- toYaml $se.hosts | nindent 4 }}
+  {{- if $se.addresses }}
+  addresses:
+  {{- toYaml $se.addresses | nindent 4 }}
+  {{- end }}
+  {{- if $se.ports }}
+  {{- range $port := $se.ports }}
+    {{- if not $port.name }}{{ fail "Service entry port name field is required." }}{{ end }}
+    {{- if not $port.number }}{{ fail "Service entry port number field is required." }}{{ end }}
+  {{- end }}
+  ports:
+  {{- toYaml $se.ports | nindent 4 }}
+  {{- end }}
+  {{- if $se.location }}
+  location: {{ $se.location }}
+  {{- end }}
+  {{- if $se.resolution }}
+  resolution: {{ $se.resolution }}
+  {{- end }}
+  {{- if $se.endpoints }}
+  endpoints:
+  {{- toYaml $se.endpoints | nindent 4 }}
+  {{- end }}
+  {{- if $se.exportTo }}
+  exportTo:
+  {{- toYaml $se.exportTo | nindent 4 }}
+  {{- end }}
+  {{- if $se.subjectAltNames }}
+  subjectAltNames:
+  {{- toYaml $se.subjectAltNames | nindent 4 }}
+  {{- end }}
+{{ end }}

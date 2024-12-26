@@ -1,0 +1,87 @@
+{{- range $appName := list "details" "productpage" "ratings" "reviews" }}
+{{- range $appVersion := dig $appName "versions" (list $.Chart.AppVersion) ($.Values | merge dict)}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bookinfo.fullname" (list $ $appName $appVersion) }}
+  labels:
+    {{- include "bookinfo.labels" (list $ $appName $appVersion) | nindent 4 }}
+spec:
+  {{- if not (dig $appName "autoscaling" "enabled" $.Values.autoscaling.enabled ($.Values | merge dict)) }}
+  replicas: {{ default $.Values.replicaCount $.Values.details.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "bookinfo.selectorLabels" (list $ $appName $appVersion) | nindent 6 }}
+  template:
+    metadata:
+      {{- with (dig $appName "podAnnotations" $.Values.podAnnotations ($.Values | merge dict)) }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "bookinfo.labels" (list $ $appName $appVersion) | nindent 8 }}
+        {{- with (dig $appName "podLabels" $.Values.podLabels ($.Values | merge dict)) }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with (dig $appName "imagePullSecrets" $.Values.imagePullSecrets ($.Values | merge dict)) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "bookinfo.serviceAccountName" (list $ $appName) }}
+      {{- if (dig $appName "podSecurityContext" $.Values.podSecurityContext ($.Values | merge dict)) }}
+      securityContext:
+        {{- toYaml (dig $appName "podSecurityContext" $.Values.podSecurityContext ($.Values | merge dict)) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ printf "%s-%s" $.Chart.Name $appName }}
+          {{- if (dig $appName "securityContext" $.Values.securityContext ($.Values | merge dict)) }}
+          securityContext:
+            {{- toYaml (dig $appName "securityContext" $.Values.securityContext ($.Values | merge dict)) | nindent 12 }}
+          {{- end }}
+          image: "{{ printf "%s-%s" (dig $appName "image" "repository" $.Values.image.repository ($.Values | merge dict)) $appVersion }}:{{ dig $appName "image" "tag" $.Values.image.tag ($.Values | merge dict) | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ dig $appName "image" "pullPolicy" $.Values.image.pullPolicy ($.Values | merge dict) }}
+          ports:
+            - name: http
+              containerPort: {{ dig $appName "service" "port" $.Values.service.port ($.Values | merge dict) }}
+              protocol: TCP
+          {{- if (dig $appName "env" $.Values.env ($.Values | merge dict)) }}
+          env:
+            {{- toYaml (dig $appName "env" $.Values.env ($.Values | merge dict)) | nindent 12 }}
+          {{- end }}
+          {{- if (dig $appName "livenessProbe" $.Values.livenessProbe ($.Values | merge dict)) }}
+          livenessProbe:
+            {{- toYaml (dig $appName "livenessProbe" $.Values.livenessProbe ($.Values | merge dict)) | nindent 12 }}
+          {{- end }}
+          {{- if (dig $appName "readinessProbe" $.Values.readinessProbe ($.Values | merge dict)) }}
+          readinessProbe:
+            {{- toYaml (dig $appName "readinessProbe" $.Values.readinessProbe ($.Values | merge dict)) | nindent 12 }}
+          {{- end }}
+          {{- if (dig $appName "resources" $.Values.resources ($.Values | merge dict)) }}
+          resources:
+            {{- toYaml (dig $appName "resources" $.Values.resources ($.Values | merge dict)) | nindent 12 }}
+          {{- end }}
+          {{- with (dig $appName "volumeMounts" $.Values.volumeMounts ($.Values | merge dict)) }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with (dig $appName "volumes" $.Values.volumes ($.Values | merge dict)) }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with (dig $appName "nodeSelector" $.Values.nodeSelector ($.Values | merge dict)) }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with (dig $appName "affinity" $.Values.affinity ($.Values | merge dict)) }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with (dig $appName "tolerations" $.Values.tolerations ($.Values | merge dict)) }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+{{ end}}

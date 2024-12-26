@@ -1,0 +1,21 @@
+---
+cr:
+  create: true
+  namespace: kiali
+  spec:
+    auth:
+      strategy: anonymous
+    external_services:
+      prometheus:
+        url: http://prometheus-server.prometheus.svc.cluster.local
+      istio:
+        ingress_gateway_namespace: istio-ingress
+      grafana:
+        enabled: true
+        internal_url: http://grafana.grafana.svc.cluster.local
+        external_url: http://grafana.asrnet.com
+    deployment:
+      pod_labels:
+        sidecar.istio.io/inject: "true"
+      pod_annotations:
+        proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'

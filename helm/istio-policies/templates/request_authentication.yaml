@@ -1,0 +1,29 @@
+{{- range $ra := .Values.request_authentications -}}
+---
+apiVersion: security.istio.io/v1
+kind: RequestAuthentication
+metadata:
+  name: {{ required "Request authentication name is required." $ra.name }}
+  {{- if $ra.namespace }}
+  namespace: {{ $ra.namespace }}
+  {{- end }}
+spec:
+  {{- if $ra.selector }}
+  selector:
+  {{- toYaml $ra.selector | nindent 4 }}
+  {{- end }}
+  {{- if $ra.targetRefs }}
+  {{- range $tr := $ra.targetRefs }}
+    {{- if not $tr.kind }}{{ fail "Request authentication targetRef kind field is required." }}{{ end }}
+  {{- end }}
+  targetRefs:
+    {{- toYaml $ra.targetRefs | nindent 4 }}
+  {{- end }}
+  {{- if $ra.jwtRules }}
+  {{- range $jwt := $ra.jwtRules }}
+    {{- if not $jwt.issuer }}{{ fail "Request authentication jwtRules issuer field is required."}}{{ end }}
+  {{- end }}
+  jwtRules:
+    {{- toYaml $ra.jwtRules | nindent 4 }}
+  {{- end }}
+{{ end }}

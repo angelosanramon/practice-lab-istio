@@ -1,0 +1,34 @@
+gateways:
+  - name: kiali-istio-ingress-gateway
+    namespace: kiali
+    selector:
+      istio: ingressgateway
+    servers:
+      - hosts:
+          - kiali.asrnet.com
+        port:
+          name: http
+          number: 80
+          protocol: HTTP
+
+virtual_services:
+  - name: kiali-istio-ingress-virtual-service
+    namespace: kiali
+    gateways:
+      - kiali-istio-ingress-gateway
+    hosts:
+      - kiali.asrnet.com
+      - kiali.kiali.svc.cluster.local
+    http:
+      - route:
+          - destination:
+              host: kiali.kiali.svc.cluster.local
+              port:
+                number: 20001
+
+# This policy is configures workloads in the namespace to accept only encrypted requests with TLS. The policy applies to all services in the mesh in the namespace.
+peer_authentications:
+  - name: kiali-istio-inbound-mtls-peer-authentication
+    namespace: kiali
+    mtls:
+      mode: STRICT

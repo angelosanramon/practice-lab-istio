@@ -1,0 +1,22 @@
+{{- range $wg := .Values.workload_groups -}}
+---
+apiVersion: networking.istio.io/v1
+kind: WorkloadGroup
+metadata:
+  name: {{ required "Workload group name is required." $wg.name }}
+  {{- if $wg.namespace }}
+  namespace: {{ $wg.namespace }}
+  {{- end }}
+spec:
+  {{- if $wg.metadata }}
+  metadata:
+  {{- toYaml $wg.metadata | nindent 4 }}
+  {{- end }}
+  {{- if not $wg.template }}{{ fail "Workload group template field is required." }}{{ end }}
+  template:
+  {{- toYaml $wg.template | nindent 4 }}
+  {{- if $wg.probe }}
+  probe:
+  {{- toYaml $wg.probe | nindent 4 }}
+  {{- end }}
+{{ end }}

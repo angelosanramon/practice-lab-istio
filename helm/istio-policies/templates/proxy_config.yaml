@@ -1,0 +1,26 @@
+{{- range $pc := .Values.proxy_configs -}}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: ProxyConfig
+metadata:
+  name: {{ required "Proxy config name is required." $pc.name }}
+  {{- if $pc.namespace }}
+  namespace: {{ $pc.namespace }}
+  {{- end }}
+spec:
+  {{- if $pc.selector }}
+  selector:
+  {{- toYaml $pc.selector | nindent 4 }}
+  {{- end }}
+  {{- if $pc.concurrency }}
+  concurrency: {{ $pc.concurrency }}
+  {{- end }}
+  {{- if $pc.environmentVariables }}
+  environmentVariables:
+  {{- toYaml $pc.environmentVariables |  nindent 4 }}
+  {{- end }}
+  {{- if $pc.image }}
+  image:
+  {{- toYaml $pc.image | nindent 4 }}
+  {{- end }}
+{{ end }}

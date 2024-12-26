@@ -1,0 +1,23 @@
+{{- range $dr := .Values.destination_rules -}}
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: {{ required "DestinationRule name is required." $dr.name }}
+  {{- if $dr.namespace }}
+  namespace: {{ $dr.namespace }}
+  {{- end }}
+spec:
+  host: {{ required "DestinationRule host field is required." $dr.host | quote }}
+  {{- if $dr.trafficPolicy }}
+  trafficPolicy:
+    {{- toYaml $dr.trafficPolicy | nindent 4 }}
+  {{- end }}
+  {{- if $dr.subsets }}
+    {{- range $subset := $dr.subsets }}
+      {{- if not $subset.name }}{{ fail "DestinationRule subset name field is required." }}{{ end }}
+    {{- end }}
+  subsets:
+    {{- toYaml $dr.subsets | nindent 4 }}
+  {{- end }}
+{{ end }}

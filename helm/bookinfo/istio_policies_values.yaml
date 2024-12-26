@@ -1,0 +1,387 @@
+gateways:
+  - name: bookinfo-istio-ingress-gateway
+    namespace: bookinfo
+    selector:
+      istio: ingressgateway
+    servers:
+      - hosts:
+          - bookinfo.asrnet.com
+        port:
+          name: http
+          number: 80
+          protocol: HTTP
+
+# This policy is configures workloads in the namespace to accept only encrypted requests with TLS. The policy applies to all services in the mesh in the namespace.
+peer_authentications:
+  - name: bookinfo-istio-inbound-mtls-peer-authentication
+    namespace: bookinfo
+    mtls:
+      mode: STRICT
+
+# Allow traffic from outside the cluster to the argocd server through Istio ingress gateway.
+virtual_services:
+  - name: bookinfo-productpage-istio-ingress-virtual-service
+    namespace: bookinfo
+    gateways:
+      - bookinfo-istio-ingress-gateway
+    hosts:
+      - bookinfo.asrnet.com
+      - bookinfo-productpage.bookinfo.svc.cluster.local
+    http:
+      # Canary deployment for product page
+      - route:
+          - destination:
+              host: bookinfo-productpage.bookinfo.svc.cluster.local
+              port:
+                number: 9080
+              subset: v1
+            weight: 100
+      #     - destination:
+      #         host: bookinfo-productpage.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      #       weight: 0
+      # # Blue-Green Deployment for productpage
+      # - name: bookinfo-productpage-v2-route
+      #   match:
+      #     - uri:
+      #         prefix: "/v2"
+      #   rewrite:
+      #     uri: "/"
+      #   route:
+      #     - destination:
+      #         host: bookinfo-productpage.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      # - name: bookinfo-productpage-v1-route
+      #   route:
+      #     - destination:
+      #         host: bookinfo-productpage.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v1
+  - name: bookinfo-details-istio-virtual-service
+    namespace: bookinfo
+    hosts:
+      - bookinfo-details.bookinfo.svc.cluster.local
+    http:
+      # Canary deployment for details
+      - route:
+          - destination:
+              host: bookinfo-details.bookinfo.svc.cluster.local
+              port:
+                number: 9080
+              subset: v1
+            weight: 100
+      #     - destination:
+      #         host: bookinfo-details.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      #       weight: 0
+      # # Blue-Green Deployment for details
+      # - name: bookinfo-details-v2-route
+      #   match:
+      #     - uri:
+      #         prefix: "/v2"
+      #   rewrite:
+      #     uri: "/"
+      #   route:
+      #     - destination:
+      #         host: bookinfo-details.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      # - name: bookinfo-details-v1-route
+      #   route:
+      #     - destination:
+      #         host: bookinfo-details.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v1
+  - name: bookinfo-reviews-istio-virtual-service
+    namespace: bookinfo
+    hosts:
+      - bookinfo-reviews.bookinfo.svc.cluster.local
+    http:
+      # Canary deployment for reviews
+      - route:
+          - destination:
+              host: bookinfo-reviews.bookinfo.svc.cluster.local
+              port:
+                number: 9080
+      #        subset: v1
+      #      weight: 100
+      #     - destination:
+      #         host: bookinfo-reviews.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      #       weight: 0
+      #     - destination:
+      #         host: bookinfo-reviews.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v3
+      #       weight: 0
+      # # Blue-Green Deployment for reviews
+      # - name: bookinfo-reviews-v3-route
+      #   match:
+      #     - uri:
+      #         prefix: "/v3"
+      #   rewrite:
+      #     uri: "/"
+      #   route:
+      #     - destination:
+      #         host: bookinfo-reviews.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v3
+      # - name: bookinfo-reviews-v2-route
+      #   match:
+      #     - uri:
+      #         prefix: "/v2"
+      #   rewrite:
+      #     uri: "/"
+      #   route:
+      #     - destination:
+      #         host: bookinfo-reviews.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      # - name: bookinfo-reviews-v1-route
+      #   route:
+      #     - destination:
+      #         host: bookinfo-reviews.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v1
+  - name: bookinfo-ratings-istio-virtual-service
+    namespace: bookinfo
+    hosts:
+      - bookinfo-ratings.bookinfo.svc.cluster.local
+    http:
+      # Canary deployment for ratings
+      - route:
+          - destination:
+              host: bookinfo-ratings.bookinfo.svc.cluster.local
+              port:
+                number: 9080
+              subset: v1
+            weight: 100
+      #     - destination:
+      #         host: bookinfo-ratings.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      #       weight: 0
+      # # Blue-Green Deployment for ratings
+      # - name: bookinfo-ratings-v2-route
+      #   match:
+      #     - uri:
+      #         prefix: "/v2"
+      #   rewrite:
+      #     uri: "/"
+      #   route:
+      #     - destination:
+      #         host: bookinfo-ratings.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      # - name: bookinfo-ratings-v1-route
+      #   route:
+      #     - destination:
+      #         host: bookinfo-ratings.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v1
+
+destination_rules:
+  - name: bookinfo-productpage-istio-destination-rule
+    namespace: bookinfo
+    host: bookinfo-productpage.bookinfo.svc.cluster.local
+    subsets:
+      - name: v1
+        labels:
+          app: bookinfo-productpage
+          version: v1
+      # - name: v2
+      #   labels:
+      #     app: bookinfo-productpage
+      #     version: v2
+  - name: bookinfo-details-istio-destination-rule
+    namespace: bookinfo
+    host: bookinfo-details.bookinfo.svc.cluster.local
+    subsets:
+      - name: v1
+        labels:
+          app: bookinfo-details
+          version: v1
+      # - name: v2
+      #   labels:
+      #     app: bookinfo-details
+      #     version: v2
+  - name: bookinfo-reviews-istio-destination-rule
+    namespace: bookinfo
+    host: bookinfo-reviews.bookinfo.svc.cluster.local
+    subsets:
+      - name: v1
+        labels:
+          app: bookinfo-reviews
+          version: v1
+      # - name: v2
+      #   labels:
+      #     app: bookinfo-reviews
+      #     version: v2
+      # - name: v3
+      #   labels:
+      #     app: bookinfo-reviews
+      #     version: v3
+  - name: bookinfo-ratings-istio-destination-rule
+    namespace: bookinfo
+    host: bookinfo-ratings.bookinfo.svc.cluster.local
+    subsets:
+      - name: v1
+        labels:
+          app: bookinfo-ratings
+          version: v1
+      # - name: v2
+      #   labels:
+      #     app: bookinfo-ratings
+      #     version: v2
+
+sidecars:
+  # Block all outgoing traffic from bookinfo namespace as default
+  - name: bookinfo-block-all-outgoing-traffic-istio-sidecar
+    namespace: bookinfo
+    egress:
+      - hosts:
+          - "~/*"
+    outboundTrafficPolicy:
+      mode: REGISTRY_ONLY
+  # Restrict bookinfo-productpage's incoming traffic to port 9080 only and also restrict outgoing traffic to 
+  # destination bookinfo-details.bookinfo.svc.cluster.local and bookinfo-reviews.bookinfo.svc.cluster.local
+  # on port 9080 only.
+  - name: bookinfo-productpage-istio-sidecar
+    namespace: bookinfo
+    workloadSelector:
+      labels:
+        app: bookinfo-productpage
+    ingress:
+      - port:
+          number: 9080
+          protocol: HTTP
+          name: http
+    egress:
+      - port:
+          number: 9080
+          protocol: HTTP
+          name: http
+        hosts:
+          - "./bookinfo-details.bookinfo.svc.cluster.local"
+          - "./bookinfo-reviews.bookinfo.svc.cluster.local"
+  # Restrict bookinfo-details's incoming traffic to port 9080 only and also block all outgoing traffic.
+  - name: bookinfo-details-istio-sidecar
+    namespace: bookinfo
+    workloadSelector:
+      labels:
+        app: bookinfo-details
+    ingress:
+      - port:
+          number: 9080
+          protocol: HTTP
+          name: http
+    egress:
+      - hosts:
+          - "~/*"
+  # Restrict bookinfo-reviews's incoming traffic to port 9080 only and also restrict outgoing traffic to 
+  # destination bookinfo-ratings.bookinfo.svc.cluster.local on port 9080 only.
+  - name: bookinfo-reviews-istio-sidecar
+    namespace: bookinfo
+    workloadSelector:
+      labels:
+        app: bookinfo-reviews
+    ingress:
+      - port:
+          number: 9080
+          protocol: HTTP
+          name: http
+    egress:
+      - port:
+          number: 9080
+          protocol: HTTP
+          name: http
+        hosts:
+          - "./bookinfo-ratings.bookinfo.svc.cluster.local"
+  # Restrict bookinfo-ratings's incoming traffic to port 9080 only and also block all outgoing traffic.
+  - name: bookinfo-ratings-istio-sidecar
+    namespace: bookinfo
+    workloadSelector:
+      labels:
+        app: bookinfo-ratings
+    ingress:
+      - port:
+          number: 9080
+          protocol: HTTP
+          name: http
+    egress:
+      - hosts:
+          - "~/*"
+
+authorization_policies:
+  - name: bookinfo-ratings-istio-authorization-policies
+    namespace: bookinfo
+    selector:
+      matchLabels:
+        app: bookinfo-ratings
+    action: ALLOW
+    rules:
+      - from:
+          - source:
+              namespaces:
+                - bookinfo
+              principals:
+                - cluster.local/ns/bookinfo/sa/bookinfo-reviews
+  - name: bookinfo-reviews-istio-authorization-policies
+    namespace: bookinfo
+    selector:
+      matchLabels:
+        app: bookinfo-reviews
+    action: ALLOW
+    rules:
+      - from:
+          - source:
+              namespaces:
+                - bookinfo
+              principals:
+                - cluster.local/ns/bookinfo/sa/bookinfo-productpage
+  - name: bookinfo-details-istio-authorization-policies
+    namespace: bookinfo
+    selector:
+      matchLabels:
+        app: bookinfo-details
+    action: ALLOW
+    rules:
+      - from:
+          - source:
+              namespaces:
+                - bookinfo
+              principals:
+                - cluster.local/ns/bookinfo/sa/bookinfo-productpage
+  - name: bookinfo-productpage-istio-authorization-policies
+    namespace: bookinfo
+    selector:
+      matchLabels:
+        app: bookinfo-productpage
+    action: ALLOW
+    rules:
+      - from:
+          - source:
+              namespaces:
+                - bookinfo
+                - istio-ingress
+              principals:
+                - cluster.local/ns/istio-ingress/sa/istio-ingressgateway
+                - cluster.local/ns/bookinfo/sa/bookinfo-productpage

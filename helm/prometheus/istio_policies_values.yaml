@@ -1,0 +1,34 @@
+gateways:
+  - name: prometheus-istio-ingress-gateway
+    namespace: prometheus
+    selector:
+      istio: ingressgateway
+    servers:
+      - hosts:
+          - prometheus.asrnet.com
+        port:
+          name: http
+          number: 80
+          protocol: HTTP
+
+virtual_services:
+  - name: prometheus-istio-ingress-virtual-service
+    namespace: prometheus
+    gateways:
+      - prometheus-istio-ingress-gateway
+    hosts:
+      - prometheus.asrnet.com
+      - prometheus-server.prometheus.svc.cluster.local
+    http:
+      - route:
+          - destination:
+              host: prometheus-server.prometheus.svc.cluster.local
+              port:
+                number: 80
+
+# This policy is configures workloads in the namespace to accept only encrypted requests with TLS. The policy applies to all services in the mesh in the namespace.
+peer_authentications:
+  - name: prometheus-istio-inbound-mtls-peer-authentication
+    namespace: prometheus
+    mtls:
+      mode: STRICT

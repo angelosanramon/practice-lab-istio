@@ -1,0 +1,49 @@
+{{- range $tlm := .Values.telemetries -}}
+---
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: {{ required "Telemetry name is required." $tlm.name }}
+  {{- if $tlm.namespace }}
+  namespace: {{ $tlm.namespace }}
+  {{- end }}
+spec:
+  {{- if $tlm.selector }}
+  selector:
+  {{- toYaml $tlm.selector | nindent 4 }}
+  {{- end }}
+  {{- if $tlm.targetRefs }}
+    {{- range $tr := $tlm.targetRefs }}
+      {{- if not $tr.kind }}{{ fail "Telemetry targetRef kind field is required." }}{{ end }}
+    {{- end }}
+  targetRefs:
+  {{- toYaml $tlm.targetRefs | nindent 4 }}
+  {{- end }}
+  {{- if $tlm.tracing }}
+    {{- range $trc := $tlm.tracing }}
+      {{- range $prv := $trc.providers }}
+        {{- if not $prv.name }}{{ fail "Telemetry tracing provider name field is required." }}{{ end }}
+      {{- end }}
+    {{- end }}
+  tracing:
+  {{- toYaml $tlm.tracing | nindent 4 }}
+  {{- end }}
+  {{- if $tlm.metrics }}
+    {{- range $mtr := $tlm.metrics }}
+      {{- range $prv := $mtr.providers }}
+        {{- if not $prv.name }}{{ fail "Telemetry metric provider name field is required." }}{{ end }}
+      {{- end }}
+    {{- end }}
+  metrics:
+  {{- toYaml $tlm.metrics | nindent 4 }}
+  {{- end }}
+  {{- if $tlm.accessLogging }}
+    {{- range $al := $tlm.accessLogging }}
+      {{- range $prv := $al.providers }}
+        {{- if not $prv.name }}{{ fail "Telemetry accessLogging provider name field is required." }}{{ end }}
+      {{- end }}
+    {{- end }}
+  accessLogging:
+  {{- toYaml $tlm.accessLogging | nindent 4 }}
+  {{- end }}
+{{- end }}

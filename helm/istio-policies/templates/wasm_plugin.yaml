@@ -1,0 +1,69 @@
+{{- range $wp := .Values.wasm_plugins -}}
+---
+apiVersion: extensions.istio.io/v1alpha1
+kind: WasmPlugin
+metadata:
+  name: {{ required "Wasm plugin name is required." $wp.name }}
+  {{- if $wp.namespace }}
+  namespace: {{ $wp.namespace }}
+  {{- end }}
+spec:
+  {{- if $wp.selector }}
+  selector:
+  {{- toYaml $wp.selector | nindent 4 }}
+  {{- end }}
+  {{- if $wp.targetRefs }}
+  {{- range $tr := $wp.targetRefs }}
+    {{- if not $tr.kind }}{{ fail "Request authentication targetRef kind field is required." }}{{ end }}
+  {{- end }}
+  targetRefs:
+    {{- toYaml $wp.targetRefs | nindent 4 }}
+  {{- end }}
+  url: {{ required "Wasm plugin url field is required." $wp.url }}
+  {{- if $wp.sha256 }}
+  sha256: {{ $wp.sha256 }}
+  {{- end }}
+  {{- if $wp.imagePullPolicy }}
+  imagePullPolicy: {{ $wp.imagePullPolicy }}
+  {{- end }}
+  {{- if $wp.imagePullSecret }}
+  imagePullSecret: {{ $wp.imagePullSecret }}
+  {{- end }}
+  {{- if $wp.pluginConfig }}
+  pluginConfig:
+  {{- toYaml $wp.pluginConfig | nindent 4 }}
+  {{- end }}
+  {{- if $wp.pluginName }}
+  pluginName: {{ $wp.pluginName }}
+  {{- end }}
+  {{- if $wp.phase }}
+  phase: {{ $wp.phase }}
+  {{- end }}
+  {{- if $wp.priority }}
+  priority: {{ $wp.priority }}
+  {{- end }}
+  {{- if $wp.failStrategy }}
+  failStrategy: {{ $wp.failStrategy }}
+  {{- end }}
+  {{- if $wp.vmConfig }}
+    {{- if $wp.vmConfig.env }}
+      {{- range $ev := $wp.vmConfig.env }}
+        {{- if not $ev.name }}{{ fail "Wasm plugin vmConfig env name field is required." }}{{ end }}
+      {{- end }}
+    {{- end }}
+  vmConfig:
+  {{- toYaml $wp.vmConfig | nindent 4 }}
+  {{- end }}
+  {{- if $wp.match }}
+  {{- range $ts := $wp.match }}
+    {{- range $ps := $ts.ports }}
+      {{- if not $ps.number }}{{ fail "Wasm plugin match port number field is required." }}{{ end }}
+    {{- end }}
+  {{- end }}
+  match:
+  {{- toYaml $wp.match | nindent 4 }}
+  {{- end }}
+  {{- if $wp.type }}
+  type: {{ $wp.type }}
+  {{- end }}
+{{ end }}

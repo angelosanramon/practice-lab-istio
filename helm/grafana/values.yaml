@@ -1,0 +1,104 @@
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus-server.prometheus
+        access: proxy
+        isDefault: true
+        editable: true
+        orgId: 1
+        jsonData:
+          timeInterval: 15s
+
+# istio-mesh-dashboard: https://grafana.com/grafana/dashboards/7639-istio-mesh-dashboard
+# istio-service-dashboard: https://grafana.com/grafana/dashboards/7636-istio-service-dashboard
+# istio-workload-dashboard: https://grafana.com/grafana/dashboards/7630-istio-workload-dashboard
+# istio-performance-dashboard: https://grafana.com/grafana/dashboards/11829-istio-performance-dashboard
+# istio-control-plane-dashboard: https://grafana.com/grafana/dashboards/7645-istio-control-plane-dashboard
+# istio-wasm-extension-dashboard: https://grafana.com/grafana/dashboards/13277-istio-wasm-extension-dashboard
+# k8s-cluster-dashboard: https://grafana.com/grafana/dashboards/6417-kubernetes-cluster-prometheus
+# k8s-volume-dashboard:: https://grafana.com/grafana/dashboards/11454-k8s-storage-volumes-cluster
+# k8s-deployment-dashboard: https://grafana.com/grafana/dashboards/741-deployment-metrics
+# k8s-pod-dashboard: https://grafana.com/grafana/dashboards/747-pod-metrics
+# k8s-node-dashboard: https://grafana.com/grafana/dashboards/8171-kubernetes-nodes
+# prometheus-stats-dashboard: https://grafana.com/grafana/dashboards/2-prometheus-stats
+# argocd-dashboard: https://grafana.com/grafana/dashboards/14584-argocd
+dashboards:
+  k8s:
+    k8s-cluster-dashboard:
+      gnetId: 6417
+      revision: 1
+    k8s-deployment-dashboard:
+      gnetId: 741
+      revision: 1
+    k8s-volume-dashboard:
+      gnetId: 11454
+      revision: 14
+    k8s-node-dashboard:
+      gnetId: 8171
+      revision: 1
+    k8s-pod-dashboard:
+      gnetId: 747
+      revision: 2
+  istio:
+    istio-mesh-dashboard:
+      gnetId: 7639
+      revision: 237
+    istio-service-dashboard:
+      gnetId: 7636
+      revision: 237
+    istio-workload-dashboard:    
+      gnetId: 7630
+      revision: 237
+    istio-performance-dashboard:
+      gnetId: 11829
+      revision: 237
+    istio-control-plane-dashboard:
+      gnetId: 7645
+      revision: 237
+    istio-wasm-extension-dashboard:
+      gnetId: 13277
+      revision: 194
+  prometheus:
+    prometheus-stats-dashboard:
+      gnetId: 2
+      revision: 2
+  argocd:
+    argocd-dashboard:
+      gnetId: 14584
+      revision: 1
+
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: istio
+        orgId: 1
+        folder: istio
+        type: file
+        disableDeletion: false
+        options:
+          path: /var/lib/grafana/dashboards/istio
+      - name: k8s
+        orgId: 1
+        folder: k8s
+        type: file
+        disableDeletion: false
+        options:
+          path: /var/lib/grafana/dashboards/k8s
+      - name: prometheus
+        orgId: 1
+        folder: prometheus
+        type: file
+        disableDeletion: false
+        options:
+          path: /var/lib/grafana/dashboards/prometheus
+      - name: argocd
+        orgId: 1
+        folder: argocd
+        type: file
+        disableDeletion: false
+        options:
+          path: /var/lib/grafana/dashboards/argocd

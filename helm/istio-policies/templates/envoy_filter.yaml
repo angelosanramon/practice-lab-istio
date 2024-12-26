@@ -1,0 +1,30 @@
+{{- range $ef := .Values.envoy_filters -}}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: {{ required "EnvoyFilter name is required." $ef.name }}
+  {{- if $ef.namespace }}
+  namespace: {{ $ef.namespace }}
+  {{- end }}
+spec:
+  {{- if $ef.workloadSelector }}
+  workloadSelector:
+  {{- toYaml $ef.workloadSelector | nindent 4}}
+  {{- end }}
+  {{- if $ef.configPatches }}
+  configPatches:
+  {{- toYaml $ef.configPatches | nindent 4 }}
+  {{- end }}
+  {{- if $ef.targetRefs }}
+  targetRefs:
+  {{- range $ptr := $ef.targetRefs }}
+    {{- if not $ptr.name }}{{ fail "Policy target referance name field is required. "}}{{ end }}
+    {{- if not $ptr.kind }}{{ fail "Policy target referance kind field is required. "}}{{ end }}
+  {{- end }}
+  {{- toYaml $ef.targetRefs | nindent 4 }}
+  {{- end }}
+  {{- if $ef.priority }}
+  priority: {{ $ef.priority }}
+  {{- end }}
+{{ end }}

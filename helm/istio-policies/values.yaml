@@ -1,0 +1,31 @@
+# Default values for istio-policies.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+gateways: []
+
+virtual_services: []
+
+destination_rules: []
+
+envoy_filters: []
+
+proxy_configs: []
+
+service_entries: []
+
+sidecars: []
+
+workload_entries: []
+
+workload_groups: []
+
+peer_authentications: []
+
+request_authentications: []
+
+authorization_policies: []
+
+wasm_plugins: []
+
+telemetries: []

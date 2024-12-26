@@ -1,0 +1,37 @@
+{{- range $appName := list "details" "productpage" "ratings" "reviews" }}
+{{- range $appVersion := dig $appName "versions" (list $.Chart.AppVersion) ($.Values | merge dict)}}
+{{- if (dig $appName "autoscaling" "enabled" $.Values.autoscaling.enabled ($.Values | merge dict)) }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "bookinfo.fullname" (list $ $appName $appVersion) }}
+  labels:
+    {{- include "bookinfo.labels" (list $ $appName $appVersion) | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "bookinfo.fullname" (list $ $appName $appVersion) }}
+  minReplicas: {{ dig $appName "autoscaling" "minReplicas" $.Values.autoscaling.minReplicas ($.Values | merge dict) }}
+  maxReplicas: {{ dig $appName "autoscaling" "maxReplicas" $.Values.autoscaling.maxReplicas ($.Values | merge dict) }}
+  metrics:
+    {{- if (dig $appName "autoscaling" "targetCPUUtilizationPercentage" $.Values.autoscaling.targetCPUUtilizationPercentage ($.Values | merge dict)) }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ dig $appName "autoscaling" "targetCPUUtilizationPercentage" $.Values.autoscaling.targetCPUUtilizationPercentage ($.Values | merge dict) }}
+    {{- end }}
+    {{- if (dig $appName "autoscaling" "targetMemoryUtilizationPercentage" $.Values.autoscaling.targetMemoryUtilizationPercentage ($.Values | merge dict)) }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ dig $appName "autoscaling" "targetMemoryUtilizationPercentage" $.Values.autoscaling.targetMemoryUtilizationPercentage ($.Values | merge dict) }}
+    {{- end }}
+{{- end }}
+{{- end }}
+{{ end }}

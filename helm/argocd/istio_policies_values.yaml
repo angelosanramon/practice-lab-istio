@@ -1,0 +1,35 @@
+gateways:
+  - name: argocd-server-istio-ingress-gateway
+    namespace: argocd
+    selector:
+      istio: ingressgateway
+    servers:
+      - hosts:
+          - argo.asrnet.com
+        port:
+          name: http
+          number: 80
+          protocol: HTTP
+
+# Allow traffic from outside the cluster to the argocd server through Istio ingress gateway.
+virtual_services:
+  - name: argocd-server-istio-ingress-virtual-service
+    namespace: argocd
+    gateways:
+      - argocd-server-istio-ingress-gateway
+    hosts:
+      - argo.asrnet.com
+      - argocd-server.argocd.svc.cluster.local
+    http:
+      - route:
+          - destination:
+              host: argocd-server.argocd.svc.cluster.local
+              port:
+                number: 80
+
+# This policy is configures workloads in the namespace to accept only encrypted requests with TLS. The policy applies to all services in the mesh in the namespace.
+peer_authentications:
+  - name: argocd-istio-inbound-mtls-peer-authentication
+    namespace: argocd
+    mtls:
+      mode: STRICT

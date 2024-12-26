@@ -1,0 +1,4 @@
+podDisruptionBudget:
+  minAvailable: 1
+service:
+  type: ClusterIP

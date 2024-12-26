@@ -1,0 +1,34 @@
+gateways:
+  - name: grafana-istio-ingress-gateway
+    namespace: grafana
+    selector:
+      istio: ingressgateway
+    servers:
+      - hosts:
+          - grafana.asrnet.com
+        port:
+          name: http
+          number: 80
+          protocol: HTTP
+
+virtual_services:
+  - name: grafana-istio-ingress-virtual-service
+    namespace: grafana
+    gateways:
+      - grafana-istio-ingress-gateway
+    hosts:
+      - grafana.asrnet.com
+      - grafana.grafana.svc.cluster.local
+    http:
+      - route:
+          - destination:
+              host: grafana.grafana.svc.cluster.local
+              port:
+                number: 80
+
+# This policy is configures workloads in the namespace to accept only encrypted requests with TLS. The policy applies to all services in the mesh in the namespace.
+peer_authentications:
+  - name: grafana-istio-inbound-mtls-peer-authentication
+    namespace: grafana
+    mtls:
+      mode: STRICT

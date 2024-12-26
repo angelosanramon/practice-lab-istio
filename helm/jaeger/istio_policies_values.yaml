@@ -1,0 +1,34 @@
+gateways:
+  - name: jaeger-istio-ingress-gateway
+    namespace: jaeger
+    selector:
+      istio: ingressgateway
+    servers:
+      - hosts:
+          - jaeger.asrnet.com
+        port:
+          name: http
+          number: 80
+          protocol: HTTP
+
+virtual_services:
+  - name: jaeger-istio-ingress-virtual-service
+    namespace: jaeger
+    gateways:
+      - jaeger-istio-ingress-gateway
+    hosts:
+      - jaeger.asrnet.com
+      - jaeger-query.jaeger.svc.cluster.local
+    http:
+      - route:
+          - destination:
+              host: jaeger-query.jaeger.svc.cluster.local
+              port:
+                number: 16686
+
+# This policy is configures workloads in the namespace to accept only encrypted requests with TLS. The policy applies to all services in the mesh in the namespace.
+peer_authentications:
+  - name: jaeger-istio-inbound-mtls-peer-authentication
+    namespace: jaeger
+    mtls:
+      mode: STRICT

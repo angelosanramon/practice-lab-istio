@@ -1,0 +1,37 @@
+{{- range $sc := .Values.sidecars -}}
+---
+apiVersion: networking.istio.io/v1
+kind: Sidecar
+metadata:
+  name: {{ required "Sidecar name is required." $sc.name }}
+  {{- if $sc.namespace }}
+  namespace: {{ $sc.namespace }}
+  {{- end }}
+spec:
+  {{- if $sc.workloadSelector }}
+  workloadSelector:
+  {{- toYaml $sc.workloadSelector | nindent 4 }}
+  {{- end }}
+  {{- if $sc.ingress }}
+  {{- range $il := $sc.ingress }}
+    {{- if not $il.port }}{{ fail "Sidecar ingress port field is required." }}{{ end }}
+  {{- end }}
+  ingress:
+  {{- toYaml $sc.ingress | nindent 4 }}
+  {{- end }}
+  {{- if $sc.egress }}
+  {{- range $el := $sc.egress }}
+    {{- if not $el.hosts }}{{ fail "Sidecar egress hosts field is required." }}{{ end }}
+  {{- end }}
+  egress:
+  {{- toYaml $sc.egress | nindent 4 }}
+  {{- end }}
+  {{- if $sc.inboundConnectionPool }}
+  inboundConnectionPool:
+  {{- toYaml $sc.inboundConnectionPool | nindent 4 }}
+  {{- end }}
+  {{- if $sc.outboundTrafficPolicy }}
+  outboundTrafficPolicy:
+  {{- toYaml $sc.outboundTrafficPolicy | nindent 4 }}
+  {{- end }}
+{{ end }}

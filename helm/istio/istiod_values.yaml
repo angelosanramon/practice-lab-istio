@@ -1,0 +1,14 @@
+meshConfig:
+  enableTracing: true
+  defaultProviders:
+    tracing:
+      - jaeger
+    metrics:
+      - prometheus
+  defaultConfig:
+    tracing: {} # disable legacy MeshConfig tracing options
+  extensionProviders:
+    - name: jaeger
+      opentelemetry:
+        port: 4317
+        service: jaeger-collector.jaeger.svc.cluster.local

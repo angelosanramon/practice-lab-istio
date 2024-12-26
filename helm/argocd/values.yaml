@@ -1,0 +1,9 @@
+---
+redisSecretInit:
+  podAnnotations:
+    sidecar.istio.io/inject: "false"
+configs:
+  params:
+    server.insecure: true
+podLabels:
+  app: argocd-server
