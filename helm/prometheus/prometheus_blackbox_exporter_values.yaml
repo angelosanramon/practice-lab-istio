@@ -1,0 +1,14 @@
+config:
+  modules:
+    bookinfo:
+      prober: http
+      timeout: 5s
+      http:
+        headers:
+          Host: bookinfo-productpage.bookinfo.svc.cluster.local
+    prometheus-kube-state-metrics:
+      prober: http
+      timeout: 5s
+      http:
+        headers:
+          Host: prometheus-kube-state-metrics.prometheus.svc.cluster.local

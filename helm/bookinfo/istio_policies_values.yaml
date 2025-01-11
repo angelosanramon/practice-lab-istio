@@ -382,6 +382,9 @@ authorization_policies:
               namespaces:
                 - bookinfo
                 - istio-ingress
+                - prometheus
               principals:
                 - cluster.local/ns/istio-ingress/sa/istio-ingressgateway
                 - cluster.local/ns/bookinfo/sa/bookinfo-productpage
+                - cluster.local/ns/prometheus/sa/prometheus-server
+                - cluster.local/ns/prometheus/sa/prometheus-blackbox-exporter

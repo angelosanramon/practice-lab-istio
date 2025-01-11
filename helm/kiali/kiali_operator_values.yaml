@@ -5,10 +5,12 @@ cr:
   spec:
     auth:
       strategy: anonymous
+    istio_namespace: istio-system
     external_services:
       prometheus:
         url: http://prometheus-server.prometheus.svc.cluster.local
       istio:
+        egress_gateway_namespace: istio-egress
         ingress_gateway_namespace: istio-ingress
       grafana:
         enabled: true

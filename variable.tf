@@ -5,7 +5,7 @@ variable "istio_namespace" {
 
 variable "istio_helm_chart_version" {
   description = "Istio helm chart version."
-  default     = "1.24.1"
+  default     = "1.24.2"
 }
 
 variable "kiali_namespace" {
@@ -25,7 +25,12 @@ variable "prometheus_namespace" {
 
 variable "prometheus_helm_chart_version" {
   description = "Prometheus helm chart version."
-  default     = "26.0.0"
+  default     = "26.0.1"
+}
+
+variable "prometheus_blackbox_exporter_helm_chart_version" {
+  description = "Prometheus blackbox exporter helm chart version."
+  default     = "9.1.0"
 }
 
 variable "argocd_namespace" {

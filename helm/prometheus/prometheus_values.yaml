@@ -1,0 +1,76 @@
+extraScrapeConfigs: |
+  - job_name: bookinfo-metrics
+    metrics_path: /probe
+    params:
+      module:
+        - bookinfo
+    kubernetes_sd_configs:
+      - role: endpoints
+    relabel_configs:
+      - source_labels:
+          - __meta_kubernetes_namespace
+          - __meta_kubernetes_endpoint_address_target_name
+        regex: bookinfo;bookinfo-productpage(.+)
+        action: keep
+      - source_labels:
+          - __address__
+        target_label: __param_target
+      - source_labels:
+          - __param_target
+        replacement: $1/metrics
+        target_label: instance
+      - target_label: __address__
+        replacement: prometheus-blackbox-exporter.prometheus.svc.cluster.local:9115
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels:
+          - __meta_kubernetes_namespace
+        target_label: kubernetes_namespace
+      - source_labels:
+          - __meta_kubernetes_service_name
+        target_label: kubernetes_service_name
+      - source_labels:
+          - __meta_kubernetes_pod_name
+        target_label: kubernetes_pod_name
+      - source_labels:
+          - __meta_kubernetes_pod_node_name
+        target_label: kubernetes_pod_node_name
+    honor_labels: true
+
+  - job_name: prometheus-kube-state-metrics
+    metrics_path: /probe
+    params:
+      module:
+        - prometheus-kube-state-metrics
+    kubernetes_sd_configs:
+      - role: endpoints
+    relabel_configs:
+      - source_labels:
+          - __meta_kubernetes_namespace
+          - __meta_kubernetes_endpoints_name
+        regex: prometheus;prometheus-kube-state-metrics(.+)
+        action: keep
+      - source_labels:
+          - __address__
+        target_label: __param_target
+      - source_labels:
+          - __param_target
+        replacement: $1/metrics
+        target_label: instance
+      - target_label: __address__
+        replacement: prometheus-blackbox-exporter.prometheus.svc.cluster.local:9115
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels:
+          - __meta_kubernetes_namespace
+        target_label: kubernetes_namespace
+      - source_labels:
+          - __meta_kubernetes_service_name
+        target_label: kubernetes_service_name
+      - source_labels:
+          - __meta_kubernetes_pod_name
+        target_label: kubernetes_pod_name
+      - source_labels:
+          - __meta_kubernetes_pod_node_name
+        target_label: kubernetes_pod_node_name
+    honor_labels: true

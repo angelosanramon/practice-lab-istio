@@ -23,9 +23,22 @@ resource "helm_release" "prometheus" {
   namespace        = var.prometheus_namespace
   version          = var.prometheus_helm_chart_version
   create_namespace = true
-  values           = [ file("./helm/prometheus/values.yaml") ]
+  values           = [ file("./helm/prometheus/prometheus_values.yaml") ]
 
   depends_on = [ kubernetes_namespace.prometheus ]
+}
+
+resource "helm_release" "prometheus_blackbox_exporter" {
+  name             = "prometheus-blackbox-exporter"
+
+  repository       = "https://prometheus-community.github.io/helm-charts"
+  chart            = "prometheus-blackbox-exporter"
+  namespace        = var.prometheus_namespace
+  version          = var.prometheus_blackbox_exporter_helm_chart_version
+  create_namespace = true
+  values           = [ file("./helm/prometheus/prometheus_blackbox_exporter_values.yaml") ]
+
+  depends_on = [ helm_release.prometheus ]
 }
 
 resource "helm_release" "prometheus_istio_policies" {
