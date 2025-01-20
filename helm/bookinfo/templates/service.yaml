@@ -6,6 +6,9 @@ metadata:
   name: {{ include "bookinfo.fullname" (list $ $appName "") }}
   labels:
     {{- include "bookinfo.labels" (list $ $appName "") | nindent 4 }}
+    {{- if (dig $appName "service" "extraLabels" $.Values.service.extraLabels ($.Values | merge dict)) }}
+    {{- toYaml (dig $appName "service" "extraLabels" $.Values.service.extraLabels ($.Values | merge dict)) | nindent 4 }}
+    {{- end }}
 spec:
   type: {{ dig $appName "service" "type" $.Values.service.type ($.Values | merge dict) }}
   ports:

@@ -16,6 +16,8 @@ cr:
         enabled: true
         internal_url: http://grafana.grafana.svc.cluster.local
         external_url: http://grafana.asrnet.com
+        auth:
+          type: basic
     deployment:
       pod_labels:
         sidecar.istio.io/inject: "true"

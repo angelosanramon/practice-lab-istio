@@ -1,0 +1,24 @@
+k8s_gateways:
+  - name: kiali-gateway
+    namespace: kiali
+    gatewayClassName: istio
+    listeners:
+      - name: kiali
+        port: 80
+        protocol: HTTP
+        hostname: kiali.asrnet.com
+        allowedRoutes:
+          namespaces:
+            from: Same
+
+k8s_httproutes:
+  - name: kiali-httproute
+    namespace: kiali
+    parentRefs:
+      - name: kiali-gateway
+    hostnames:
+      - kiali.asrnet.com
+    rules:
+      - backendRefs:
+          - name: kiali
+            port: 20001

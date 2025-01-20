@@ -78,6 +78,7 @@ podAnnotations: {}
 # This is for setting Kubernetes Labels to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 podLabels: {}
+  # istio.io/use-waypoint: bookinfo-waypoint
 
 podSecurityContext: {}
   # fsGroup: 2000
@@ -100,7 +101,8 @@ service:
   type: ClusterIP
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
   port: 9080
-
+  extraLabels: {}
+  #  istio.io/use-waypoint: bookinfo-waypoint
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   enabled: false

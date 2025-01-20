@@ -1,0 +1,56 @@
+{{- range $gw := .Values.k8s_gateways -}}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ required "Gateway name is required." $gw.name }}
+  {{- if $gw.namespace }}
+  namespace: {{ $gw.namespace }}
+  {{- end }}
+  {{- if $gw.annotations }}
+  annotations:
+  {{- toYaml $gw.annotations | nindent 4 }}
+  {{- end }}
+  {{- if $gw.clusterName }}
+  clusterName: {{ $gw.clusterName }}
+  {{- end }}
+  {{- if $gw.deletionGracePeriodSeconds }}
+  deletionGracePeriodSeconds: {{ $gw.deletionGracePeriodSeconds }}
+  {{- end }}
+  {{- if $gw.finalizers }}
+  finalizers:
+  {{- toYaml $gw.finalizers | nindent 4 }}
+  {{- end }}
+  {{- if $gw.generateName }}
+  generateName: {{ $gw.generateName }}
+  {{- end }}
+  {{- if $gw.labels }}
+  labels:
+  {{- toYaml $gw.labels | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ required "gatewayClassName is required." $gw.gatewayClassName }}
+  {{- if not $gw.listeners }}{{ fail "At least one gateway listener is required." }}{{ end }}
+  {{- range $listener := $gw.listeners }}
+  {{- if not $listener.name }}{{ fail "Listener name field is required."}}{{ end }}
+  {{- if not $listener.port }}{{ fail "Listener port field is required."}}{{ end }}
+  {{- if not $listener.protocol }}{{ fail "Listener protocol field is required."}}{{ end }}
+  {{- end }}
+  listeners:
+  {{- toYaml $gw.listeners | nindent 4 }}
+  {{- if $gw.addresses }}
+  {{- range $address := $gw.addresses }}
+  {{- if not $address.value }}{{ fail "Address value is required." }}{{ end }}
+  {{- end }}
+  addresses:
+  {{- toYaml $gw.addresses | nindent 4 }}
+  {{- end }}
+  {{- if $gw.infrastructure }}
+  infrastructure:
+    {{- toYaml $gw.infrastructure | nindent 4 }}
+  {{- end }}
+  {{- if $gw.backendTLS }}
+  backendTLS:
+  {{- toYaml $gw.backendTLS | nindent 4 }}
+  {{- end }}
+{{ end }}

@@ -1,3 +1,13 @@
+variable "istio_mesh_mode" {
+  description = "Istio data plane mode."
+  default     = "sidecar"
+
+  validation {
+    condition = var.istio_mesh_mode == "sidecar" || var.istio_mesh_mode == "ambient"
+    error_message = "Istio data plane mode must either be sidecar or ambient."
+  }
+}
+
 variable "istio_namespace" {
   description = "Namespace to install Istio."
   default     = "istio-system"
