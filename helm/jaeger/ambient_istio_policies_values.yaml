@@ -1,0 +1,23 @@
+k8s_gateways:
+  - name: jaeger-gateway
+    namespace: jaeger
+    gatewayClassName: istio
+    listeners:
+      - name: jaeger
+        port: 80
+        protocol: HTTP
+        hostname: jaeger.asrnet.com
+        allowedRoutes:
+          namespaces:
+            from: Same
+k8s_httproutes:
+  - name: jaeger-query-httproute
+    namespace: jaeger
+    parentRefs:
+      - name: jaeger-gateway
+    hostnames:
+      - jaeger.asrnet.com
+    rules:
+      - backendRefs:
+          - name: jaeger-query
+            port: 16686

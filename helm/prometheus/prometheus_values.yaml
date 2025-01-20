@@ -1,3 +1,6 @@
+server:
+  podLabels:
+    app: prometheus-server
 extraScrapeConfigs: |
   - job_name: bookinfo-metrics
     metrics_path: /probe

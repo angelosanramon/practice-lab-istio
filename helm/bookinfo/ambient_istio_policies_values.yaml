@@ -1,0 +1,662 @@
+k8s_gateways:
+  - name: bookinfo-gateway
+    namespace: bookinfo
+    gatewayClassName: istio
+    listeners:
+      - name: bookinfo-productpage
+        port: 80
+        protocol: HTTP
+        hostname: bookinfo.asrnet.com
+        allowedRoutes:
+          namespaces:
+            from: Same
+  - name: bookinfo-waypoint
+    namespace: bookinfo
+    gatewayClassName: istio-waypoint
+    labels:
+      istio.io/waypoint-for: all
+    listeners:
+      - name: mesh
+        port: 15008
+        protocol: HBONE
+        allowedRoutes:
+          namespaces:
+            from: Same
+
+k8s_httproutes:
+  - name: bookinfo-productpage-httproute
+    namespace: bookinfo
+    parentRefs:
+      - name: bookinfo-gateway
+    hostnames:
+      - bookinfo.asrnet.com
+    rules:
+      - backendRefs:
+          - name: bookinfo-productpage
+            port: 9080
+
+# NetworkPolicy requires Kubernetets CNI provider installed, such as Calico. Does not work when services are using waypoint. Works when only the pods are using waypoint.
+k8s_network_policies:
+  - name: bookinfo-gateway-network-policy
+    namespace: bookinfo
+    podSelector:
+      matchLabels:
+        gateway.networking.k8s.io/gateway-name: bookinfo-gateway
+    policyTypes:
+      - Ingress
+      - Egress
+    ingress:
+      - ports:
+          - port: 80
+            protocol: TCP
+          - port: 15020
+            protocol: TCP
+          - port: 15021
+            protocol: TCP
+          - port: 15090
+            protocol: TCP
+      - from:  # Allow all ports from link-local address For health probe traffic. Istio use 169.254.7.127/32 link local address.
+          - ipBlock:
+              cidr: 169.254.7.127/32
+    egress:
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchLabels:
+                app: bookinfo-productpage
+        ports:
+          - port: 9080
+            protocol: TCP
+          - port: 15008
+            protocol: TCP
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: istio-system
+            podSelector:
+              matchLabels:
+                app: istiod
+            ports:
+              - port: 443
+                protocol: TCP
+              - port: 15010
+                protocol: TCP
+              - port: 15012
+                protocol: TCP
+              - port: 15014
+                protocol: TCP
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+            podSelector:
+              matchLabels:
+                k8s-app: kube-dns
+        ports:
+          - port: 53
+            protocol: UDP
+          - port: 53
+            protocol: TCP
+  - name: bookinfo-waypoint-network-policy
+    namespace: bookinfo
+    podSelector:
+      matchLabels:
+        gateway.networking.k8s.io/gateway-name: bookinfo-waypoint
+    policyTypes:
+      - Ingress
+      - Egress
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - bookinfo-productpage
+                    - bookinfo-details
+                    - bookinfo-reviews
+                    - bookinfo-ratings
+        ports:
+          - port: 15008
+            protocol: TCP
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: prometheus
+            podSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - prometheus-server
+                    - prometheus-blackbox-exporter
+        ports:
+          - port: 15008
+            protocol: TCP
+          - port: 15020
+            protocol: TCP
+          - port: 15021
+            protocol: TCP
+      - from:  # Allow all ports from link-local address For health probe traffic. Istio use 169.254.7.127/32 link local address.
+          - ipBlock:
+              cidr: 169.254.7.127/32
+    egress:
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - bookinfo-productpage
+                    - bookinfo-details
+                    - bookinfo-reviews
+                    - bookinfo-ratings
+            ports:
+              - port: 9080
+                protocol: TCP
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: istio-system
+            podSelector:
+              matchLabels:
+                app: istiod
+            ports:
+              - port: 443
+                protocol: TCP
+              - port: 15010
+                protocol: TCP
+              - port: 15012
+                protocol: TCP
+              - port: 15014
+                protocol: TCP
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+            podSelector:
+              matchLabels:
+                k8s-app: kube-dns
+        ports:
+          - port: 53
+            protocol: UDP
+          - port: 53
+            protocol: TCP
+  - name: bookinfo-productpage-network-policy
+    namespace: bookinfo
+    podSelector:
+      matchLabels:
+        app: bookinfo-productpage
+    policyTypes:
+      - Ingress
+      - Egress
+    ingress:
+      - from:  # Accept traffic coming from waypoints
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchExpressions:
+                - key: gateway.networking.k8s.io/gateway-name
+                  operator: In
+                  values: 
+                    - bookinfo-gateway
+                    - bookinfo-waypoint
+        ports:
+          - port: 9080
+            protocol: TCP
+          - port: 15008
+            protocol: TCP
+      - from:  # Allow all ports from link-local address For health probe traffic. Istio use 169.254.7.127/32 link local address.
+          - ipBlock:
+              cidr: 169.254.7.127/32
+    egress:
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchLabels:
+                gateway.networking.k8s.io/gateway-name: bookinfo-waypoint
+        ports:
+          - port: 15008
+            protocol: TCP
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+            podSelector:
+              matchLabels:
+                k8s-app: kube-dns
+        ports:
+          - port: 53
+            protocol: UDP
+          - port: 53
+            protocol: TCP
+  - name: bookinfo-details-network-policy
+    namespace: bookinfo
+    podSelector:
+      matchLabels:
+        app: bookinfo-details
+    policyTypes:
+      - Ingress
+      - Egress
+    ingress:
+      - from:  # Accept traffic coming from waypoint
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchLabels:
+                gateway.networking.k8s.io/gateway-name: bookinfo-waypoint
+        ports:
+          - port: 9080
+            protocol: TCP
+          - port: 15008
+            protocol: TCP
+      - from:  # Allow all ports from link-local address For health probe traffic. Istio use 169.254.7.127/32 link local address.
+          - ipBlock:
+              cidr: 169.254.7.127/32
+  - name: bookinfo-reviews-network-policy
+    namespace: bookinfo
+    podSelector:
+      matchLabels:
+        app: bookinfo-reviews
+    policyTypes:
+      - Ingress
+      - Egress
+    ingress:
+      - from:  # Accept traffic coming from waypoints
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchLabels:
+                gateway.networking.k8s.io/gateway-name: bookinfo-waypoint
+        ports:
+          - port: 9080
+            protocol: TCP
+          - port: 15008
+            protocol: TCP
+      - from:  # Allow all ports from link-local address For health probe traffic. Istio use 169.254.7.127/32 link local address.
+          - ipBlock:
+              cidr: 169.254.7.127/32
+    egress:
+      - to: 
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchLabels:
+                gateway.networking.k8s.io/gateway-name: bookinfo-waypoint
+        ports:
+          - port: 15008
+            protocol: TCP
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+            podSelector:
+              matchLabels:
+                k8s-app: kube-dns
+        ports:
+          - port: 53
+            protocol: UDP
+          - port: 53
+            protocol: TCP
+  - name: bookinfo-ratings-network-policy
+    namespace: bookinfo
+    podSelector:
+      matchLabels:
+        app: bookinfo-ratings
+    policyTypes:
+      - Ingress
+      - Egress
+    ingress:
+      - from:  # Accept traffic coming from waypoints
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchLabels:
+                gateway.networking.k8s.io/gateway-name: bookinfo-waypoint
+        ports:
+          - port: 9080
+            protocol: TCP
+          - port: 15008
+            protocol: TCP
+      - from:  # Allow all ports from link-local address For health probe traffic. Istio use 169.254.7.127/32 link local address.
+          - ipBlock:
+              cidr: 169.254.7.127/32
+
+authorization_policies:
+  - name: bookinfo-productpage-authorization-policies
+    namespace: bookinfo
+    targetRefs:
+      - name: bookinfo-productpage
+        kind: Service
+        group: ""
+    action: ALLOW
+    rules:
+      - from:
+          - source:
+              principals:
+                - cluster.local/ns/prometheus/sa/prometheus-server
+                - cluster.local/ns/prometheus/sa/prometheus-blackbox-exporter
+                - cluster.local/ns/bookinfo/sa/bookinfo-gateway-istio
+                - cluster.local/ns/bookinfo/sa/bookinfo-waypoint
+        to:
+        - operation:
+            methods:
+              - GET
+              - POST
+            ports:
+              - "9080"
+  - name: bookinfo-details-authorization-policies
+    namespace: bookinfo
+    targetRefs:
+      - name: bookinfo-details
+        kind: Service
+        group: ""
+    action: ALLOW
+    rules:
+      - from:
+          - source:
+              principals:
+                - cluster.local/ns/bookinfo/sa/bookinfo-productpage
+                - cluster.local/ns/bookinfo/sa/bookinfo-waypoint
+        to:
+        - operation:
+            methods:
+              - GET
+            paths:
+              - /health
+              - /details/
+              - /details/{*}
+            ports:
+              - "9080"
+  - name: bookinfo-reviews-authorization-policies
+    namespace: bookinfo
+    targetRefs:
+      - name: bookinfo-reviews
+        kind: Service
+        group: ""
+    action: ALLOW
+    rules:
+      - from:
+          - source:
+              principals:
+                - cluster.local/ns/bookinfo/sa/bookinfo-productpage
+                - cluster.local/ns/bookinfo/sa/bookinfo-waypoint
+        to:
+        - operation:
+            methods:
+              - GET
+            paths:
+              - /health
+              - /reviews/
+              - /reviews/{*}
+            ports:
+              - "9080"
+  - name: bookinfo-ratings-authorization-policies
+    namespace: bookinfo
+    targetRefs:
+      - name: bookinfo-ratings
+        kind: Service
+        group: ""
+    action: ALLOW
+    rules:
+      - from:
+          - source:
+              principals:
+                - cluster.local/ns/bookinfo/sa/bookinfo-reviews
+                - cluster.local/ns/bookinfo/sa/bookinfo-waypoint
+        to:
+          - operation:
+              methods:
+                - GET
+                - POST
+              paths:
+                - /health
+                - /ratings/
+                - /ratings/{*}
+              ports:
+                - "9080"
+
+virtual_services:
+  - name: bookinfo-productpage-virtual-service
+    namespace: bookinfo
+    hosts:
+      - bookinfo-productpage.bookinfo.svc.cluster.local
+    http:
+      # Canary deployment for product page
+      - route:
+          - destination:
+              host: bookinfo-productpage.bookinfo.svc.cluster.local
+              port:
+                number: 9080
+              subset: v1
+            weight: 100
+      #     - destination:
+      #         host: bookinfo-productpage.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      #       weight: 0
+      # # Blue-Green Deployment for productpage
+      # - name: bookinfo-productpage-v2-route
+      #   match:
+      #     - uri:
+      #         prefix: "/v2"
+      #   rewrite:
+      #     uri: "/"
+      #   route:
+      #     - destination:
+      #         host: bookinfo-productpage.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      # - name: bookinfo-productpage-v1-route
+      #   route:
+      #     - destination:
+      #         host: bookinfo-productpage.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v1
+  - name: bookinfo-details-virtual-service
+    namespace: bookinfo
+    hosts:
+      - bookinfo-details.bookinfo.svc.cluster.local
+    http:
+      # Canary deployment for details
+      - route:
+          - destination:
+              host: bookinfo-details.bookinfo.svc.cluster.local
+              port:
+                number: 9080
+              subset: v1
+            weight: 100
+      #     - destination:
+      #         host: bookinfo-details.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      #       weight: 0
+      # # Blue-Green Deployment for details
+      # - name: bookinfo-details-v2-route
+      #   match:
+      #     - uri:
+      #         prefix: "/v2"
+      #   rewrite:
+      #     uri: "/"
+      #   route:
+      #     - destination:
+      #         host: bookinfo-details.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      # - name: bookinfo-details-v1-route
+      #   route:
+      #     - destination:
+      #         host: bookinfo-details.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v1
+  - name: bookinfo-reviews-virtual-service
+    namespace: bookinfo
+    hosts:
+      - bookinfo-reviews.bookinfo.svc.cluster.local
+    http:
+      # Canary deployment for reviews
+      - route:
+          - destination:
+              host: bookinfo-reviews.bookinfo.svc.cluster.local
+              port:
+                number: 9080
+      #        subset: v1
+      #      weight: 100
+      #     - destination:
+      #         host: bookinfo-reviews.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      #       weight: 0
+      #     - destination:
+      #         host: bookinfo-reviews.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v3
+      #       weight: 0
+      # # Blue-Green Deployment for reviews
+      # - name: bookinfo-reviews-v3-route
+      #   match:
+      #     - uri:
+      #         prefix: "/v3"
+      #   rewrite:
+      #     uri: "/"
+      #   route:
+      #     - destination:
+      #         host: bookinfo-reviews.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v3
+      # - name: bookinfo-reviews-v2-route
+      #   match:
+      #     - uri:
+      #         prefix: "/v2"
+      #   rewrite:
+      #     uri: "/"
+      #   route:
+      #     - destination:
+      #         host: bookinfo-reviews.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      # - name: bookinfo-reviews-v1-route
+      #   route:
+      #     - destination:
+      #         host: bookinfo-reviews.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v1
+  - name: bookinfo-ratings-virtual-service
+    namespace: bookinfo
+    hosts:
+      - bookinfo-ratings.bookinfo.svc.cluster.local
+    http:
+      # Canary deployment for ratings
+      - route:
+          - destination:
+              host: bookinfo-ratings.bookinfo.svc.cluster.local
+              port:
+                number: 9080
+              subset: v1
+            weight: 100
+      #     - destination:
+      #         host: bookinfo-ratings.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      #       weight: 0
+      # # Blue-Green Deployment for ratings
+      # - name: bookinfo-ratings-v2-route
+      #   match:
+      #     - uri:
+      #         prefix: "/v2"
+      #   rewrite:
+      #     uri: "/"
+      #   route:
+      #     - destination:
+      #         host: bookinfo-ratings.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v2
+      # - name: bookinfo-ratings-v1-route
+      #   route:
+      #     - destination:
+      #         host: bookinfo-ratings.bookinfo.svc.cluster.local
+      #         port:
+      #           number: 9080
+      #         subset: v1
+
+destination_rules:
+  - name: bookinfo-productpage-destination-rule
+    namespace: bookinfo
+    host: bookinfo-productpage.bookinfo.svc.cluster.local
+    subsets:
+      - name: v1
+        labels:
+          app: bookinfo-productpage
+          version: v1
+      # - name: v2
+      #   labels:
+      #     app: bookinfo-productpage
+      #     version: v2
+  - name: bookinfo-details-destination-rule
+    namespace: bookinfo
+    host: bookinfo-details.bookinfo.svc.cluster.local
+    subsets:
+      - name: v1
+        labels:
+          app: bookinfo-details
+          version: v1
+      # - name: v2
+      #   labels:
+      #     app: bookinfo-details
+      #     version: v2
+  - name: bookinfo-reviews-destination-rule
+    namespace: bookinfo
+    host: bookinfo-reviews.bookinfo.svc.cluster.local
+    subsets:
+      - name: v1
+        labels:
+          app: bookinfo-reviews
+          version: v1
+      # - name: v2
+      #   labels:
+      #     app: bookinfo-reviews
+      #     version: v2
+      # - name: v3
+      #   labels:
+      #     app: bookinfo-reviews
+      #     version: v3
+  - name: bookinfo-ratings-destination-rule
+    namespace: bookinfo
+    host: bookinfo-ratings.bookinfo.svc.cluster.local
+    subsets:
+      - name: v1
+        labels:
+          app: bookinfo-ratings
+          version: v1
+      # - name: v2
+      #   labels:
+      #     app: bookinfo-ratings
+      #     version: v2

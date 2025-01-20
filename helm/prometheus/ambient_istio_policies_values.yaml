@@ -1,0 +1,23 @@
+k8s_gateways:
+  - name: prometheus-gateway
+    namespace: prometheus
+    gatewayClassName: istio
+    listeners:
+      - name: prometheus-server
+        port: 80
+        protocol: HTTP
+        hostname: prometheus.asrnet.com
+        allowedRoutes:
+          namespaces:
+            from: Same
+k8s_httproutes:
+  - name: prometheus-server-httproute
+    namespace: prometheus
+    parentRefs:
+      - name: prometheus-gateway
+    hostnames:
+      - prometheus.asrnet.com
+    rules:
+      - backendRefs:
+          - name: prometheus-server
+            port: 80

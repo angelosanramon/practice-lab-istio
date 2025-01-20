@@ -1,16 +1,23 @@
+locals {
+  grafana_istio_ambient_mode_labels = {
+    "istio.io/dataplane-mode" = "ambient"
+  }
+
+  grafana_istio_sidecar_mode_labels = {
+    istio-injection = "enabled"
+  }
+}
+
 resource "kubernetes_namespace" "grafana" {
   metadata {
     name   = var.grafana_namespace
 
-    labels = {
-      istio-injection = "enabled"
-    }
+    labels = var.istio_mesh_mode == "ambient" ? local.grafana_istio_ambient_mode_labels : local.grafana_istio_sidecar_mode_labels
   }
 
   depends_on = [
     helm_release.istio_base,
-    helm_release.istiod,
-    helm_release.istio_ingressgateway
+    helm_release.istiod
   ]
 }
 
@@ -22,6 +29,7 @@ resource "helm_release" "grafana" {
   namespace        = var.grafana_namespace
   version          = var.grafana_helm_chart_version
   values           = [ file("./helm/grafana/values.yaml") ]
+  timeout          = 1800
 
   set {
     name  = "adminUser"
@@ -40,5 +48,9 @@ resource "helm_release" "grafana_istio_policies" {
   name      = "grafana-istio-policies"
   chart     = "./helm/istio-policies"
   namespace = kubernetes_namespace.grafana.id
-  values    = [ file("./helm/grafana/istio_policies_values.yaml") ]
+  values    = [
+    file( var.istio_mesh_mode == "ambient" ? "./helm/grafana/ambient_istio_policies_values.yaml" : "./helm/grafana/sidecar_istio_policies_values.yaml" )
+  ]
+
+  depends_on = [ helm_release.grafana ]
 }

@@ -1,0 +1,40 @@
+{{- range $gc := .Values.k8s_gatewayclasses -}}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: {{ required "GatewayClass name is required." $gc.name }}
+  {{- if $gc.namespace }}
+  namespace: {{ $gc.namespace }}
+  {{- end }}
+  {{- if $gc.annotations }}
+  annotations:
+  {{- toYaml $gc.annotations | nindent 4 }}
+  {{- end }}
+  {{- if $gc.clusterName }}
+  clusterName: {{ $gc.clusterName }}
+  {{- end }}
+  {{- if $gc.deletionGracePeriodSeconds }}
+  deletionGracePeriodSeconds: {{ $gc.deletionGracePeriodSeconds }}
+  {{- end }}
+  {{- if $gc.finalizers }}
+  finalizers:
+  {{- toYaml $gc.finalizers | nindent 4 }}
+  {{- end }}
+  {{- if $gc.generateName }}
+  generateName: {{ $gc.generateName }}
+  {{- end }}
+  {{- if $gc.labels }}
+  labels:
+  {{- toYaml $gc.labels | nindent 4 }}
+  {{- end }}
+spec:
+  controllerName: {{ required "GatewayClass controller name is required." $gc.controllerName }}
+  {{- if $gc.parametersRef }}
+  parametersRef:
+  {{- toYaml $gc.parametersRef | nindent 4 }}
+  {{- end }}
+  {{- if $gc.description }}
+  description: {{ $gc.description }}
+  {{- end }}
+{{ end }}

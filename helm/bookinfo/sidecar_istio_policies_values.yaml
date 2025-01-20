@@ -1,5 +1,157 @@
+k8s_network_policies:
+  - name: bookinfo-productpage-network-policy
+    namespace: bookinfo
+    podSelector:
+      matchLabels:
+        app: bookinfo-productpage
+    policyTypes:
+      - Ingress
+      - Egress
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: istio-ingress
+            podSelector:
+              matchLabels:
+                istio: ingressgateway
+        ports:
+          - port: 9080
+            protocol: TCP
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: prometheus
+            podSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["prometheus-server", "prometheus-blackbox-exporter"]
+        ports:
+          - port: 9080
+            protocol: TCP
+          - port: 15020
+            protocol: TCP
+      - from:  # Allow all ports from link-local address For health probe traffic. Istio use 169.254.7.127/32 link local address.
+          - ipBlock:
+              cidr: 169.254.7.127/32
+    egress:
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["bookinfo-details", "bookinfo-reviews"]
+        ports:
+          - port: 9080
+            protocol: TCP
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+            podSelector:
+              matchLabels:
+                k8s-app: kube-dns
+        ports:
+          - port: 53
+            protocol: UDP
+          - port: 53
+            protocol: TCP
+  - name: bookinfo-details-network-policy
+    namespace: bookinfo
+    podSelector:
+      matchLabels:
+        app: bookinfo-details
+    policyTypes:
+      - Ingress
+      - Egress
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchLabels:
+                app: bookinfo-productpage
+        ports:
+          - port: 9080
+            protocol: TCP
+      - from:  # Allow all ports from link-local address For health probe traffic. Istio use 169.254.7.127/32 link local address.
+          - ipBlock:
+              cidr: 169.254.7.127/32
+  - name: bookinfo-reviews-network-policy
+    namespace: bookinfo
+    podSelector:
+      matchLabels:
+        app: bookinfo-reviews
+    policyTypes:
+      - Ingress
+      - Egress
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchLabels:
+                app: bookinfo-productpage
+        ports:
+          - port: 9080
+            protocol: TCP
+      - from:  # Allow all ports from link-local address For health probe traffic. Istio use 169.254.7.127/32 link local address.
+          - ipBlock:
+              cidr: 169.254.7.127/32
+    egress:
+      - to: 
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchLabels:
+                app: bookinfo-ratings
+        ports:
+          - port: 9080
+            protocol: TCP
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+            podSelector:
+              matchLabels:
+                k8s-app: kube-dns
+        ports:
+          - port: 53
+            protocol: UDP
+          - port: 53
+            protocol: TCP
+  - name: bookinfo-ratings-network-policy
+    namespace: bookinfo
+    podSelector:
+      matchLabels:
+        app: bookinfo-ratings
+    policyTypes:
+      - Ingress
+      - Egress
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: bookinfo
+            podSelector:
+              matchLabels:
+                app: bookinfo-reviews
+        ports:
+          - port: 9080
+            protocol: TCP
+      - from:  # Allow all ports from link-local address For health probe traffic. Istio use 169.254.7.127/32 link local address.
+          - ipBlock:
+              cidr: 169.254.7.127/32
+
 gateways:
-  - name: bookinfo-istio-ingress-gateway
+  - name: bookinfo-ingress-gateway
     namespace: bookinfo
     selector:
       istio: ingressgateway
@@ -20,10 +172,10 @@ peer_authentications:
 
 # Allow traffic from outside the cluster to the argocd server through Istio ingress gateway.
 virtual_services:
-  - name: bookinfo-productpage-istio-ingress-virtual-service
+  - name: bookinfo-productpage-ingress-virtual-service
     namespace: bookinfo
     gateways:
-      - bookinfo-istio-ingress-gateway
+      - bookinfo-ingress-gateway
     hosts:
       - bookinfo.asrnet.com
       - bookinfo-productpage.bookinfo.svc.cluster.local
@@ -62,7 +214,7 @@ virtual_services:
       #         port:
       #           number: 9080
       #         subset: v1
-  - name: bookinfo-details-istio-virtual-service
+  - name: bookinfo-details-virtual-service
     namespace: bookinfo
     hosts:
       - bookinfo-details.bookinfo.svc.cluster.local
@@ -101,7 +253,7 @@ virtual_services:
       #         port:
       #           number: 9080
       #         subset: v1
-  - name: bookinfo-reviews-istio-virtual-service
+  - name: bookinfo-reviews-virtual-service
     namespace: bookinfo
     hosts:
       - bookinfo-reviews.bookinfo.svc.cluster.local
@@ -158,7 +310,7 @@ virtual_services:
       #         port:
       #           number: 9080
       #         subset: v1
-  - name: bookinfo-ratings-istio-virtual-service
+  - name: bookinfo-ratings-virtual-service
     namespace: bookinfo
     hosts:
       - bookinfo-ratings.bookinfo.svc.cluster.local
@@ -199,7 +351,7 @@ virtual_services:
       #         subset: v1
 
 destination_rules:
-  - name: bookinfo-productpage-istio-destination-rule
+  - name: bookinfo-productpage-destination-rule
     namespace: bookinfo
     host: bookinfo-productpage.bookinfo.svc.cluster.local
     subsets:
@@ -211,7 +363,7 @@ destination_rules:
       #   labels:
       #     app: bookinfo-productpage
       #     version: v2
-  - name: bookinfo-details-istio-destination-rule
+  - name: bookinfo-details-destination-rule
     namespace: bookinfo
     host: bookinfo-details.bookinfo.svc.cluster.local
     subsets:
@@ -223,7 +375,7 @@ destination_rules:
       #   labels:
       #     app: bookinfo-details
       #     version: v2
-  - name: bookinfo-reviews-istio-destination-rule
+  - name: bookinfo-reviews-destination-rule
     namespace: bookinfo
     host: bookinfo-reviews.bookinfo.svc.cluster.local
     subsets:
@@ -239,7 +391,7 @@ destination_rules:
       #   labels:
       #     app: bookinfo-reviews
       #     version: v3
-  - name: bookinfo-ratings-istio-destination-rule
+  - name: bookinfo-ratings-destination-rule
     namespace: bookinfo
     host: bookinfo-ratings.bookinfo.svc.cluster.local
     subsets:
@@ -254,7 +406,7 @@ destination_rules:
 
 sidecars:
   # Block all outgoing traffic from bookinfo namespace as default
-  - name: bookinfo-block-all-outgoing-traffic-istio-sidecar
+  - name: bookinfo-block-all-outgoing-traffic-sidecar
     namespace: bookinfo
     egress:
       - hosts:
@@ -264,7 +416,7 @@ sidecars:
   # Restrict bookinfo-productpage's incoming traffic to port 9080 only and also restrict outgoing traffic to 
   # destination bookinfo-details.bookinfo.svc.cluster.local and bookinfo-reviews.bookinfo.svc.cluster.local
   # on port 9080 only.
-  - name: bookinfo-productpage-istio-sidecar
+  - name: bookinfo-productpage-sidecar
     namespace: bookinfo
     workloadSelector:
       labels:
@@ -283,7 +435,7 @@ sidecars:
           - "./bookinfo-details.bookinfo.svc.cluster.local"
           - "./bookinfo-reviews.bookinfo.svc.cluster.local"
   # Restrict bookinfo-details's incoming traffic to port 9080 only and also block all outgoing traffic.
-  - name: bookinfo-details-istio-sidecar
+  - name: bookinfo-details-sidecar
     namespace: bookinfo
     workloadSelector:
       labels:
@@ -298,7 +450,7 @@ sidecars:
           - "~/*"
   # Restrict bookinfo-reviews's incoming traffic to port 9080 only and also restrict outgoing traffic to 
   # destination bookinfo-ratings.bookinfo.svc.cluster.local on port 9080 only.
-  - name: bookinfo-reviews-istio-sidecar
+  - name: bookinfo-reviews-sidecar
     namespace: bookinfo
     workloadSelector:
       labels:
@@ -316,7 +468,7 @@ sidecars:
         hosts:
           - "./bookinfo-ratings.bookinfo.svc.cluster.local"
   # Restrict bookinfo-ratings's incoming traffic to port 9080 only and also block all outgoing traffic.
-  - name: bookinfo-ratings-istio-sidecar
+  - name: bookinfo-ratings-sidecar
     namespace: bookinfo
     workloadSelector:
       labels:
@@ -331,46 +483,7 @@ sidecars:
           - "~/*"
 
 authorization_policies:
-  - name: bookinfo-ratings-istio-authorization-policies
-    namespace: bookinfo
-    selector:
-      matchLabels:
-        app: bookinfo-ratings
-    action: ALLOW
-    rules:
-      - from:
-          - source:
-              namespaces:
-                - bookinfo
-              principals:
-                - cluster.local/ns/bookinfo/sa/bookinfo-reviews
-  - name: bookinfo-reviews-istio-authorization-policies
-    namespace: bookinfo
-    selector:
-      matchLabels:
-        app: bookinfo-reviews
-    action: ALLOW
-    rules:
-      - from:
-          - source:
-              namespaces:
-                - bookinfo
-              principals:
-                - cluster.local/ns/bookinfo/sa/bookinfo-productpage
-  - name: bookinfo-details-istio-authorization-policies
-    namespace: bookinfo
-    selector:
-      matchLabels:
-        app: bookinfo-details
-    action: ALLOW
-    rules:
-      - from:
-          - source:
-              namespaces:
-                - bookinfo
-              principals:
-                - cluster.local/ns/bookinfo/sa/bookinfo-productpage
-  - name: bookinfo-productpage-istio-authorization-policies
+  - name: bookinfo-productpage-authorization-policies
     namespace: bookinfo
     selector:
       matchLabels:
@@ -379,12 +492,75 @@ authorization_policies:
     rules:
       - from:
           - source:
-              namespaces:
-                - bookinfo
-                - istio-ingress
-                - prometheus
               principals:
                 - cluster.local/ns/istio-ingress/sa/istio-ingressgateway
-                - cluster.local/ns/bookinfo/sa/bookinfo-productpage
                 - cluster.local/ns/prometheus/sa/prometheus-server
                 - cluster.local/ns/prometheus/sa/prometheus-blackbox-exporter
+        to:
+        - operation:
+            methods:
+              - GET
+              - POST
+            ports:
+              - "9080"
+  - name: bookinfo-details-authorization-policies
+    namespace: bookinfo
+    selector:
+      matchLabels:
+        app: bookinfo-details
+    action: ALLOW
+    rules:
+      - from:
+          - source:
+              principals:
+                - cluster.local/ns/bookinfo/sa/bookinfo-productpage
+        to:
+        - operation:
+            methods:
+              - GET
+            paths:
+              - /health
+              - /details/{*}
+            ports:
+              - "9080"
+  - name: bookinfo-reviews-authorization-policies
+    namespace: bookinfo
+    selector:
+      matchLabels:
+        app: bookinfo-reviews
+    action: ALLOW
+    rules:
+      - from:
+          - source:
+              principals:
+                - cluster.local/ns/bookinfo/sa/bookinfo-productpage
+        to:
+        - operation:
+            methods:
+              - GET
+            paths:
+              - /health
+              - /reviews/{*}
+            ports:
+              - "9080"
+  - name: bookinfo-ratings-authorization-policies
+    namespace: bookinfo
+    selector:
+      matchLabels:
+        app: bookinfo-ratings
+    action: ALLOW
+    rules:
+      - from:
+          - source:
+              principals:
+                - cluster.local/ns/bookinfo/sa/bookinfo-reviews
+        to:
+        - operation:
+            methods:
+              - GET
+              - POST
+            paths:
+              - /health
+              - /ratings/{*}
+            ports:
+              - "9080"

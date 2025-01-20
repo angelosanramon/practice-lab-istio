@@ -1,0 +1,47 @@
+{{- range $np := .Values.k8s_network_policies -}}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ required "NetworkPolicy name is required." $np.name }}
+  {{- if $np.namespace }}
+  namespace: {{ $np.namespace }}
+  {{- end }}
+  {{- if $np.annotations }}
+  annotations:
+  {{- toYaml $np.annotations | nindent 4 }}
+  {{- end }}
+  {{- if $np.clusterName }}
+  clusterName: {{ $np.clusterName }}
+  {{- end }}
+  {{- if $np.deletionGracePeriodSeconds }}
+  deletionGracePeriodSeconds: {{ $np.deletionGracePeriodSeconds }}
+  {{- end }}
+  {{- if $np.finalizers }}
+  finalizers:
+  {{- toYaml $np.finalizers | nindent 4 }}
+  {{- end }}
+  {{- if $np.generateName }}
+  generateName: {{ $np.generateName }}
+  {{- end }}
+  {{- if $np.labels }}
+  labels:
+  {{- toYaml $np.labels | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if eq $np.podSelector nil }}{{ fail "podSelector field is required." }}{{ end }}
+  podSelector:
+  {{- toYaml $np.podSelector | nindent 4 }}
+  {{- if $np.policyTypes }}
+  policyTypes:
+  {{- toYaml $np.policyTypes | nindent 4 }}
+  {{- end }}
+  {{- if $np.ingress }}
+  ingress:
+  {{- toYaml $np.ingress | nindent 4 }}
+  {{- end }}
+  {{- if $np.egress }}
+  egress:
+  {{- toYaml $np.egress | nindent 4 }}
+  {{- end }}
+{{ end }}

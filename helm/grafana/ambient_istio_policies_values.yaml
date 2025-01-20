@@ -1,0 +1,23 @@
+k8s_gateways:
+  - name: grafana-gateway
+    namespace: grafana
+    gatewayClassName: istio
+    listeners:
+      - name: grafana
+        port: 80
+        protocol: HTTP
+        hostname: grafana.asrnet.com
+        allowedRoutes:
+          namespaces:
+            from: Same
+k8s_httproutes:
+  - name: grafana-httproute
+    namespace: grafana
+    parentRefs:
+      - name: grafana-gateway
+    hostnames:
+      - grafana.asrnet.com
+    rules:
+      - backendRefs:
+          - name: grafana
+            port: 80

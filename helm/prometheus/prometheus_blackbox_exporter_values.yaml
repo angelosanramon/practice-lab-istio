@@ -12,3 +12,5 @@ config:
       http:
         headers:
           Host: prometheus-kube-state-metrics.prometheus.svc.cluster.local
+commonLabels:
+  app: prometheus-blackbox-exporter
