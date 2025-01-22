@@ -3,10 +3,21 @@ k8s_gateways:
     namespace: bookinfo
     gatewayClassName: istio
     listeners:
-      - name: bookinfo-productpage
+      - name: bookinfo-productpage-http
         port: 80
         protocol: HTTP
         hostname: bookinfo.asrnet.com
+        allowedRoutes:
+          namespaces:
+            from: Same
+      - name: bookinfo-productpage-https
+        port: 443
+        protocol: HTTPS
+        hostname: bookinfo.asrnet.com
+        tls:
+          mode: Terminate
+          certificateRefs:
+            - name: bookinfo.asrnet.com-cert
         allowedRoutes:
           namespaces:
             from: Same
@@ -24,10 +35,24 @@ k8s_gateways:
             from: Same
 
 k8s_httproutes:
-  - name: bookinfo-productpage-httproute
+  - name: bookinfo-productpage-httproute-http
     namespace: bookinfo
     parentRefs:
       - name: bookinfo-gateway
+        sectionName: bookinfo-productpage-http
+    hostnames:
+      - bookinfo.asrnet.com
+    rules:
+      - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+  - name: bookinfo-productpage-httproute-https
+    namespace: bookinfo
+    parentRefs:
+      - name: bookinfo-gateway
+        sectionName: bookinfo-productpage-https
     hostnames:
       - bookinfo.asrnet.com
     rules:
@@ -48,6 +73,8 @@ k8s_network_policies:
     ingress:
       - ports:
           - port: 80
+            protocol: TCP
+          - port: 443
             protocol: TCP
           - port: 15020
             protocol: TCP

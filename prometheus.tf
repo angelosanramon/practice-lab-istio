@@ -29,7 +29,9 @@ resource "helm_release" "prometheus" {
   namespace        = var.prometheus_namespace
   version          = var.prometheus_helm_chart_version
   create_namespace = true
-  values           = [ file("./helm/prometheus/prometheus_values.yaml") ]
+  values           = [ 
+    file(var.istio_mesh_mode == "ambient" ? "./helm/prometheus/ambient_prometheus_values.yaml" : "./helm/prometheus/sidecar_prometheus_values.yaml")
+  ]
   timeout          = 1800
 
   depends_on = [ kubernetes_namespace.prometheus ]

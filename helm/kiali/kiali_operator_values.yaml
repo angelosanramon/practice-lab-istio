@@ -19,7 +19,5 @@ cr:
         auth:
           type: basic
     deployment:
-      pod_labels:
-        sidecar.istio.io/inject: "true"
       pod_annotations:
         proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'

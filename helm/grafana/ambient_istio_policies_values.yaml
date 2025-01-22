@@ -3,18 +3,44 @@ k8s_gateways:
     namespace: grafana
     gatewayClassName: istio
     listeners:
-      - name: grafana
+      - name: grafana-http
         port: 80
         protocol: HTTP
         hostname: grafana.asrnet.com
         allowedRoutes:
           namespaces:
             from: Same
+      - name: grafana-https
+        port: 443
+        protocol: HTTPS
+        hostname: grafana.asrnet.com
+        tls:
+          mode: Terminate
+          certificateRefs:
+            - name: grafana.asrnet.com-cert
+        allowedRoutes:
+          namespaces:
+            from: Same
+
 k8s_httproutes:
-  - name: grafana-httproute
+  - name: grafana-httproute-http
     namespace: grafana
     parentRefs:
       - name: grafana-gateway
+        sectionName: grafana-http
+    hostnames:
+      - grafana.asrnet.com
+    rules:
+      - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+  - name: grafana-httproute-https
+    namespace: grafana
+    parentRefs:
+      - name: grafana-gateway
+        sectionName: grafana-https
     hostnames:
       - grafana.asrnet.com
     rules:

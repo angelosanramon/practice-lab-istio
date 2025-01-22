@@ -162,6 +162,17 @@ gateways:
           name: http
           number: 80
           protocol: HTTP
+        tls:
+          httpsRedirect: true
+      - hosts:
+          - bookinfo.asrnet.com
+        port:
+          name: https
+          number: 443
+          protocol: HTTPS
+        tls:
+          mode: SIMPLE
+          credentialName: bookinfo.asrnet.com-cert
 
 # This policy is configures workloads in the namespace to accept only encrypted requests with TLS. The policy applies to all services in the mesh in the namespace.
 peer_authentications:

@@ -92,3 +92,23 @@ variable "bookinfo_helm_chart_version" {
   description = "Bookinfo Helm chart version."
   default     = "0.1.0"
 }
+
+variable "cert_manager_namespace" {
+  description = "Namespace to install cert-manager."
+  default     = "cert-manager"
+}
+
+variable "cert_manager_helm_chart_version" {
+  description = "Cert manager helm chart version."
+  default = "1.16.3"
+}
+
+variable "reflector_namespace" {
+  description = "Namespace to install Kubernetes Reflector."
+  default     = "reflector"
+}
+
+variable "reflector_helm_chart_version" {
+  description = "Kubernetes Reflector helm chart version."
+  default = "7.1.288"
+}

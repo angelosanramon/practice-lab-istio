@@ -3,18 +3,44 @@ k8s_gateways:
     namespace: argocd
     gatewayClassName: istio
     listeners:
-      - name: argocd-server
+      - name: argocd-server-http
         port: 80
         protocol: HTTP
         hostname: argocd.asrnet.com
         allowedRoutes:
           namespaces:
             from: Same
+      - name: argocd-server-https
+        port: 443
+        protocol: HTTPS
+        hostname: argocd.asrnet.com
+        tls:
+          mode: Terminate
+          certificateRefs:
+            - name: argocd.asrnet.com-cert
+        allowedRoutes:
+          namespaces:
+            from: Same
+
 k8s_httproutes:
-  - name: argocd-server-httproute
+  - name: argocd-server-httproute-http
     namespace: argocd
     parentRefs:
       - name: argocd-server-gateway
+        sectionName: argocd-server-http
+    hostnames:
+      - argocd.asrnet.com
+    rules:
+      - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+  - name: argocd-server-httproute-https
+    namespace: argocd
+    parentRefs:
+      - name: argocd-server-gateway
+        sectionName: argocd-server-https
     hostnames:
       - argocd.asrnet.com
     rules:

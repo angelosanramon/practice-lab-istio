@@ -10,6 +10,17 @@ gateways:
           name: http
           number: 80
           protocol: HTTP
+        tls:
+          httpsRedirect: true
+      - hosts:
+          - argo.asrnet.com
+        port:
+          name: https
+          number: 443
+          protocol: HTTPS
+        tls:
+          mode: SIMPLE
+          credentialName: argocd.asrnet.com-cert
 
 # Allow traffic from outside the cluster to the argocd server through Istio ingress gateway.
 virtual_services:

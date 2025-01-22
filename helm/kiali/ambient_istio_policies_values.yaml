@@ -3,19 +3,44 @@ k8s_gateways:
     namespace: kiali
     gatewayClassName: istio
     listeners:
-      - name: kiali
+      - name: kiali-http
         port: 80
         protocol: HTTP
         hostname: kiali.asrnet.com
         allowedRoutes:
           namespaces:
             from: Same
+      - name: kiali-https
+        port: 443
+        protocol: HTTPS
+        hostname: kiali.asrnet.com
+        tls:
+          mode: Terminate
+          certificateRefs:
+            - name: kiali.asrnet.com-cert
+        allowedRoutes:
+          namespaces:
+            from: Same
 
 k8s_httproutes:
-  - name: kiali-httproute
+  - name: kiali-httproute-http
     namespace: kiali
     parentRefs:
       - name: kiali-gateway
+        sectionName: kiali-http
+    hostnames:
+      - kiali.asrnet.com
+    rules:
+      - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+  - name: kiali-httproute-https
+    namespace: kiali
+    parentRefs:
+      - name: kiali-gateway
+        sectionName: kiali-https
     hostnames:
       - kiali.asrnet.com
     rules:

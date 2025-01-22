@@ -1,0 +1,6 @@
+# This policy is configures workloads in the namespace to accept only encrypted requests with TLS. The policy applies to all services in the mesh in the namespace.
+peer_authentications:
+  - name: cert-manager-inbound-mtls-peer-authentication
+    namespace: cert-manager
+    mtls:
+      mode: STRICT

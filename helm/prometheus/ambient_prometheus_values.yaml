@@ -1,0 +1,54 @@
+server:
+  podLabels:
+    app: prometheus-server
+extraScrapeConfigs: |
+  - job_name: bookinfo-metrics
+    kubernetes_sd_configs:
+      - role: endpoints
+    relabel_configs:
+      - source_labels:
+          - __meta_kubernetes_namespace
+          - __meta_kubernetes_endpoint_address_target_name
+        regex: bookinfo;bookinfo-productpage(.+)
+        action: keep
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels:
+          - __meta_kubernetes_namespace
+        target_label: kubernetes_namespace
+      - source_labels:
+          - __meta_kubernetes_service_name
+        target_label: kubernetes_service_name
+      - source_labels:
+          - __meta_kubernetes_pod_name
+        target_label: kubernetes_pod_name
+      - source_labels:
+          - __meta_kubernetes_pod_node_name
+        target_label: kubernetes_pod_node_name
+    honor_labels: true
+    fallback_scrape_protocol: PrometheusText0.0.4
+
+  - job_name: prometheus-kube-state-metrics
+    kubernetes_sd_configs:
+      - role: endpoints
+    relabel_configs:
+      - source_labels:
+          - __meta_kubernetes_namespace
+          - __meta_kubernetes_endpoint_address_target_name
+        regex: prometheus;prometheus-kube-state-metrics(.*)
+        action: keep
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels:
+          - __meta_kubernetes_namespace
+        target_label: kubernetes_namespace
+      - source_labels:
+          - __meta_kubernetes_service_name
+        target_label: kubernetes_service_name
+      - source_labels:
+          - __meta_kubernetes_pod_name
+        target_label: kubernetes_pod_name
+      - source_labels:
+          - __meta_kubernetes_pod_node_name
+        target_label: kubernetes_pod_node_name
+    honor_labels: true

@@ -3,18 +3,40 @@ k8s_gateways:
     namespace: prometheus
     gatewayClassName: istio
     listeners:
-      - name: prometheus-server
+      - name: prometheus-server-http
         port: 80
         protocol: HTTP
-        hostname: prometheus.asrnet.com
         allowedRoutes:
           namespaces:
             from: Same
+      - name: prometheus-server-https
+        port: 443
+        protocol: HTTPS
+        tls:
+          mode: Terminate
+          certificateRefs:
+            - name: prometheus.asrnet.com-cert
+        allowedRoutes:
+          namespaces:
+            from: Same
+
 k8s_httproutes:
-  - name: prometheus-server-httproute
+  - name: prometheus-server-httproute-http
     namespace: prometheus
     parentRefs:
       - name: prometheus-gateway
+        sectionName: prometheus-server-http
+    hostnames:
+      - prometheus.asrnet.com
+    rules:
+      - backendRefs:
+          - name: prometheus-server
+            port: 80
+  - name: prometheus-server-httproute-https
+    namespace: prometheus
+    parentRefs:
+      - name: prometheus-gateway
+        sectionName: prometheus-server-https
     hostnames:
       - prometheus.asrnet.com
     rules:

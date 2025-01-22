@@ -3,18 +3,44 @@ k8s_gateways:
     namespace: jaeger
     gatewayClassName: istio
     listeners:
-      - name: jaeger
+      - name: jaeger-http
         port: 80
         protocol: HTTP
         hostname: jaeger.asrnet.com
         allowedRoutes:
           namespaces:
             from: Same
+      - name: jaeger-https
+        port: 443
+        protocol: HTTPS
+        hostname: jaeger.asrnet.com
+        tls:
+          mode: Terminate
+          certificateRefs:
+            - name: jaeger.asrnet.com-cert
+        allowedRoutes:
+          namespaces:
+            from: Same
+
 k8s_httproutes:
-  - name: jaeger-query-httproute
+  - name: jaeger-query-httproute-http
     namespace: jaeger
     parentRefs:
       - name: jaeger-gateway
+        sectionName: jaeger-http
+    hostnames:
+      - jaeger.asrnet.com
+    rules:
+      - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+  - name: jaeger-query-httproute-https
+    namespace: jaeger
+    parentRefs:
+      - name: jaeger-gateway
+        sectionName: jaeger-https
     hostnames:
       - jaeger.asrnet.com
     rules:

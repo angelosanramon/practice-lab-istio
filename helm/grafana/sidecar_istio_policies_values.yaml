@@ -10,6 +10,17 @@ gateways:
           name: http
           number: 80
           protocol: HTTP
+        tls:
+          httpsRedirect: true
+      - hosts:
+          - grafana.asrnet.com
+        port:
+          name: https
+          number: 443
+          protocol: HTTPS
+        tls:
+          mode: SIMPLE
+          credentialName: grafana.asrnet.com-cert
 
 virtual_services:
   - name: grafana-istio-ingress-virtual-service
