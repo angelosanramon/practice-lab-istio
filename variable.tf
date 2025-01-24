@@ -63,16 +63,6 @@ variable "grafana_helm_chart_version" {
   default     = "8.6.4"
 }
 
-variable "grafana_admin_username" {
-  description = "Username for the Grafana admin."
-  default     = "grafana-admin"
-}
-
-variable "grafana_admin_password" {
-  description = "Password for the Grafana admin"
-  sensitive   = true
-}
-
 variable "jaeger_namespace" {
   description = "Namespace to install Jaeger."
   default     = "jaeger"
@@ -111,4 +101,14 @@ variable "reflector_namespace" {
 variable "reflector_helm_chart_version" {
   description = "Kubernetes Reflector helm chart version."
   default = "7.1.288"
+}
+
+variable "keycloak_namespace" {
+  description = "Namespace to install keycloak."
+  default     = "keycloak"
+}
+
+variable "keycloak_helm_chart_version" {
+  description = "Keycloak helm chart version."
+  default     = "18.9.0"
 }

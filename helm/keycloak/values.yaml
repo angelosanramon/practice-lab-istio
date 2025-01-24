@@ -1,0 +1,40 @@
+image:
+  tag: 26.1.0
+command:
+  - /opt/keycloak/bin/kc.sh
+  - start
+extraEnv: |
+  - name: KC_BOOTSTRAP_ADMIN_USERNAME
+    value: kc-admin
+  - name: KC_HOSTNAME_STRICT
+    value: "false"
+  - name: KC_HTTP_RELATIVE_PATH
+    value: /auth
+  - name: KC_PROXY_HEADERS
+    value: xforwarded
+  - name: KC_HTTP_ENABLED
+    value: "true"
+  - name: KC_HEALTH_ENABLED
+    value: "true"
+  - name: KC_METRICS_ENABLED
+    value: "true"
+  - name: KC_DB
+    value: postgres
+  - name: KC_DB_URL_HOST
+    value: keycloak-postgresql
+  - name: KC_DB_URL_PORT
+    value: "5432"
+  - name: KC_DB_URL_DATABASE
+    value: keycloak
+  - name: KC_DB_USERNAME
+    value: keycloak
+  - name: KC_DB_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: postgresql-password
+        name: keycloak-postgresql
+  - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: admin-password
+        name: keycloak-creds

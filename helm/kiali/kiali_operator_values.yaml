@@ -18,6 +18,7 @@ cr:
         external_url: http://grafana.asrnet.com
         auth:
           type: basic
+          username: grafana-admin
     deployment:
       pod_annotations:
         proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'

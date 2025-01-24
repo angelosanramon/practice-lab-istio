@@ -28,9 +28,9 @@ spec:
   secretTemplate:
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "argocd,bookinfo,grafana,kiali,jaeger,prometheus"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "argocd,bookinfo,grafana,kiali,jaeger,prometheus,keycloak"
       reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "argocd,bookinfo,grafana,kiali,jaeger,prometheus"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "argocd,bookinfo,grafana,kiali,jaeger,prometheus,keycloak"
   commonName: asrnet.com
   dnsNames:
     - asrnet.com
@@ -331,5 +331,53 @@ spec:
   depends_on = [
     helm_release.cert_manager,
     helm_release.prometheus
+  ]
+}
+
+resource "kubectl_manifest" "keycloak_issuer" {
+  yaml_body = <<YAML
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: keycloak-issuer
+  namespace: keycloak
+spec:
+  ca:
+    secretName: asrnet.com-ca-cert
+  YAML
+
+  depends_on = [
+    helm_release.cert_manager,
+    helm_release.keycloak
+  ]
+}
+
+resource "kubectl_manifest" "keycloak_cert" {
+  yaml_body = <<YAML
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: keycloak-cert
+  namespace: keycloak
+spec:
+  secretName: keycloak.asrnet.com-cert
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "istio-ingress"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "istio-ingress"
+  commonName: keycloak.asrnet.com
+  dnsNames:
+    - keycloak.asrnet.com
+  issuerRef:
+    name: keycloak-issuer
+    kind: Issuer
+    group: cert-manager.io
+  YAML
+
+  depends_on = [
+    helm_release.cert_manager,
+    helm_release.keycloak
   ]
 }

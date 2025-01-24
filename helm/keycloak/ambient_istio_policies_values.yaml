@@ -1,0 +1,49 @@
+k8s_gateways:
+  - name: keycloak-gateway
+    namespace: keycloak
+    gatewayClassName: istio
+    listeners:
+      - name: keycloak-http
+        port: 80
+        protocol: HTTP
+        hostname: keycloak.asrnet.com
+        allowedRoutes:
+          namespaces:
+            from: Same
+      - name: keycloak-https
+        port: 443
+        protocol: HTTPS
+        hostname: keycloak.asrnet.com
+        tls:
+          mode: Terminate
+          certificateRefs:
+            - name: keycloak.asrnet.com-cert
+        allowedRoutes:
+          namespaces:
+            from: Same
+
+k8s_httproutes:
+  - name: keycloak-httproute-http
+    namespace: keycloak
+    parentRefs:
+      - name: keycloak-gateway
+        sectionName: keycloak-http
+    hostnames:
+      - keycloak.asrnet.com
+    rules:
+      - filters:
+          - type: RequestRedirect
+            requestRedirect:
+              scheme: https
+              statusCode: 301
+  - name: keycloak-httproute-https
+    namespace: keycloak
+    parentRefs:
+      - name: keycloak-gateway
+        sectionName: keycloak-https
+    hostnames:
+      - keycloak.asrnet.com
+    rules:
+      - backendRefs:
+          - name: keycloak-http
+            port: 80

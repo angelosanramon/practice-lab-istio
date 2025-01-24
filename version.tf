@@ -14,5 +14,10 @@ terraform {
       source  = "gavinbunney/kubectl"
       version = ">= 1.16.0"
     }
+
+    keycloak = {
+      source  = "keycloak/keycloak"
+      version = ">= 5.0.0"
+    }
   }
 }

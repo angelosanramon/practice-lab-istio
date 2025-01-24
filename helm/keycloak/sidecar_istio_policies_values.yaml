@@ -1,0 +1,45 @@
+gateways:
+  - name: keycloak-istio-ingress-gateway
+    namespace: keycloak
+    selector:
+      istio: ingressgateway
+    servers:
+      - hosts:
+          - keycloak.asrnet.com
+        port:
+          name: http
+          number: 80
+          protocol: HTTP
+        tls:
+          httpsRedirect: true
+      - hosts:
+          - keycloak.asrnet.com
+        port:
+          name: https
+          number: 443
+          protocol: HTTPS
+        tls:
+          mode: SIMPLE
+          credentialName: keycloak.asrnet.com-cert
+
+virtual_services:
+  - name: keycloak-istio-ingress-virtual-service
+    namespace: keycloak
+    gateways:
+      - keycloak-istio-ingress-gateway
+    hosts:
+      - keycloak.asrnet.com
+      - keycloak.keycloak.svc.cluster.local
+    http:
+      - route:
+          - destination:
+              host: keycloak.keycloak.svc.cluster.local
+              port:
+                number: 80
+
+# This policy is configures workloads in the namespace to accept only encrypted requests with TLS. The policy applies to all services in the mesh in the namespace.
+peer_authentications:
+  - name: keycloak-inbound-mtls-peer-authentication
+    namespace: keycloak
+    mtls:
+      mode: STRICT

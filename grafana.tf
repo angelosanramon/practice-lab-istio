@@ -21,6 +21,10 @@ resource "kubernetes_namespace" "grafana" {
   ]
 }
 
+resource "random_password" "grafana_admin_password" {
+  length = 32
+}
+
 resource "helm_release" "grafana" {
   name             = "grafana"
 
@@ -32,13 +36,8 @@ resource "helm_release" "grafana" {
   timeout          = 1800
 
   set {
-    name  = "adminUser"
-    value = var.grafana_admin_username
-  }
-
-  set {
     name  = "adminPassword"
-    value = var.grafana_admin_password
+    value = random_password.grafana_admin_password.result
   }
 
   depends_on = [ kubernetes_namespace.grafana ]
