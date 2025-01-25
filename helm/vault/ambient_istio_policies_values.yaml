@@ -1,0 +1,49 @@
+k8s_gateways:
+  - name: vault-gateway
+    namespace: vault
+    gatewayClassName: istio
+    listeners:
+      - name: vault-http
+        port: 80
+        protocol: HTTP
+        hostname: vault.asrnet.com
+        allowedRoutes:
+          namespaces:
+            from: Same
+      - name: vault-https
+        port: 443
+        protocol: HTTPS
+        hostname: vault.asrnet.com
+        tls:
+          mode: Terminate
+          certificateRefs:
+            - name: vault.asrnet.com-cert
+        allowedRoutes:
+          namespaces:
+            from: Same
+
+k8s_httproutes:
+  - name: vault-httproute-http
+    namespace: vault
+    parentRefs:
+      - name: vault-gateway
+        sectionName: vault-http
+    hostnames:
+      - vault.asrnet.com
+    rules:
+      - filters:
+          - type: RequestRedirect
+            requestRedirect:
+              scheme: https
+              statusCode: 301
+  - name: vault-httproute-https
+    namespace: vault
+    parentRefs:
+      - name: vault-gateway
+        sectionName: vault-https
+    hostnames:
+      - vault.asrnet.com
+    rules:
+      - backendRefs:
+          - name: vault
+            port: 8200

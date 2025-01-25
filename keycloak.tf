@@ -22,6 +22,7 @@ resource "kubernetes_namespace" "keycloak" {
 }
 
 resource "random_password" "keycloak_admin_password" {
+  count = var.keycloak_admin_password == "" ? 1 : 0
   length = 32
 }
 
@@ -35,8 +36,13 @@ resource "helm_release" "keycloak" {
   timeout          = 1800
 
   set {
+    name  = "secrets.creds.data.admin-user"
+    value = base64encode(var.keycloak_admin_user)
+  }
+
+  set {
     name  = "secrets.creds.data.admin-password"
-    value = base64encode(random_password.keycloak_admin_password.result)
+    value = var.keycloak_admin_password == "" ? base64encode(random_password.keycloak_admin_password[0].result) : base64encode(var.keycloak_admin_password)
   }
 
   depends_on = [ kubernetes_namespace.keycloak ]

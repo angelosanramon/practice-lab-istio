@@ -1,0 +1,54 @@
+global:
+  enabled: true
+  tlsDisable: true
+auditStorage:
+  enabled: true
+standalone:
+  enabled: false
+server:
+  image:
+    tag: "1.18.3"
+  readinessProbe:
+    enabled: true
+    path: "/v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204"
+  livenessProbe:
+    enabled: true
+  ha:
+    enabled: true
+    replicas: 3
+    raft:
+      enabled: true
+      setNodeId: true
+      config: |
+        ui = true
+        cluster_name = "vault-asrnet"
+        listener "tcp" {
+          tls_disable = true
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+          telemetry {
+            unauthenticated_metrics_access = "true"
+          }
+        }
+
+        storage "raft" {
+          path = "/vault/data"
+          retry_join {
+            leader_api_addr = "http://vault-0.vault-internal.vault.svc.cluster.local:8200"
+          }
+          retry_join {
+            leader_api_addr = "http://vault-1.vault-internal.vault.svc.cluster.local:8200"
+          }
+          retry_join {
+            leader_api_addr = "http://vault-2.vault-internal.vault.svc.cluster.local:8200"
+          }
+        }
+  extraVolumes:
+    - type: configMap
+      name: vault-init-unseal
+      path: /vault/userconfig 
+  postStart:
+    - sh
+    - /vault/userconfig/vault-init-unseal/init-unseal.sh
+ui:
+  enabled: true

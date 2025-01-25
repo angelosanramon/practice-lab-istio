@@ -33,8 +33,13 @@ resource "helm_release" "kiali_operator" {
   timeout          = 1800
 
   set {
+    name  = "cr.spec.external_services.grafana.auth.username"
+    value = var.grafana_admin_user
+  }
+
+  set {
     name  = "cr.spec.external_services.grafana.auth.password"
-    value = random_password.grafana_admin_password.result
+    value = var.grafana_admin_password == "" ? random_password.grafana_admin_password[0].result : var.grafana_admin_password
   }
 
   depends_on = [

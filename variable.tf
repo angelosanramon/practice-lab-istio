@@ -1,6 +1,6 @@
 variable "istio_mesh_mode" {
   description = "Istio data plane mode."
-  default     = "sidecar"
+  default     = "ambient"
 
   validation {
     condition = var.istio_mesh_mode == "sidecar" || var.istio_mesh_mode == "ambient"
@@ -63,6 +63,16 @@ variable "grafana_helm_chart_version" {
   default     = "8.6.4"
 }
 
+variable "grafana_admin_user" {
+  description = "Admin user for Grafana."
+  default     = "grafana-admin"
+}
+
+variable "grafana_admin_password" {
+  description = "Password for Grafana admin user."
+  default     = ""
+}
+
 variable "jaeger_namespace" {
   description = "Namespace to install Jaeger."
   default     = "jaeger"
@@ -104,11 +114,41 @@ variable "reflector_helm_chart_version" {
 }
 
 variable "keycloak_namespace" {
-  description = "Namespace to install keycloak."
+  description = "Namespace to install Keycloak."
   default     = "keycloak"
 }
 
 variable "keycloak_helm_chart_version" {
   description = "Keycloak helm chart version."
   default     = "18.9.0"
+}
+
+variable "keycloak_admin_user" {
+  description = "Keycloak admin username."
+  default     = "kc-admin"
+}
+
+variable "keycloak_admin_password" {
+  description = "Keycloak admin password."
+  default     = ""
+}
+
+variable "vault_namespace" {
+  description = "Namespace to install Vault."
+  default     = "vault"
+}
+
+variable "vault_helm_chart_version" {
+  description = "Vault helm chart version."
+  default     = "0.29.1"
+}
+
+variable "vault_unseal_keys_reader_user" {
+  description = "User that will be used to read unseal keys in Vault."
+  default     = "unsealkeysreader"
+}
+
+variable "vault_unseal_keys_reader_password" {
+  description = "Password for the unseal keys reader user."
+  default     = ""
 }
