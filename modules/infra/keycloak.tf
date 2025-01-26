@@ -33,7 +33,7 @@ resource "helm_release" "keycloak" {
   namespace        = var.keycloak_namespace
   version          = var.keycloak_helm_chart_version
   values           = [file("./helm/keycloak/values.yaml")]
-  timeout          = 1800
+  timeout          = 3600
 
   set {
     name  = "secrets.creds.data.admin-user"

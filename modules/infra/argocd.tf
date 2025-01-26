@@ -28,7 +28,7 @@ resource "helm_release" "argocd" {
   namespace        = "argocd"
   version          = "7.7.5"
   values           = [ file("./helm/argocd/values.yaml") ]
-  timeout          = 1800
+  timeout          = 3600
 
   depends_on = [ kubernetes_namespace.argocd ]
 }

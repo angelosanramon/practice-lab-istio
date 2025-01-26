@@ -29,7 +29,7 @@ resource "helm_release" "reflector" {
   chart            = "reflector"
   namespace        = var.reflector_namespace
   version          = var.reflector_helm_chart_version
-  timeout          = 1800
+  timeout          = 3600
 
   depends_on = [ kubernetes_namespace.reflector ]
 }

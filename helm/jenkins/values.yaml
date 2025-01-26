@@ -1,0 +1,14 @@
+controller:
+  image:
+    tag: 2.494
+  jenkinsUrl: https://jenkins.asrnet.com
+prometheus:
+  enabled: true
+additionalPlugins:
+  - prometheus:801.v98e119d8eeda_
+  - docker-plugin:1.8.0
+  - workflow-multibranch:800.v5f0a_a_660950e
+  - cloudbees-folder:6.980.v5a_cc0cb_25881
+  - blueocean:1.27.16
+  - sonar:2.17.3
+  - mailer:489.vd4b_25144138f

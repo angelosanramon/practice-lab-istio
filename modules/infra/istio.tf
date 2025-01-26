@@ -12,7 +12,7 @@ resource "helm_release" "istio_base" {
   namespace        = var.istio_namespace
   create_namespace = true
   version          = var.istio_helm_chart_version
-  timeout          = 1800
+  timeout          = 3600
 }
 
 resource "helm_release" "istiod" {
@@ -23,7 +23,7 @@ resource "helm_release" "istiod" {
   create_namespace = true
   version          = var.istio_helm_chart_version
   values           = [ file("./helm/istio/istiod_values.yaml") ]
-  timeout          = 1800
+  timeout          = 3600
 
   set {
     name  = "telemetry.enabled"
@@ -49,7 +49,7 @@ resource "helm_release" "istio_cni" {
   namespace        = var.istio_namespace
   create_namespace = true
   version          = var.istio_helm_chart_version
-  timeout          = 1800
+  timeout          = 3600
 
   set {
     name  = "profile"
@@ -76,7 +76,7 @@ resource "helm_release" "istio_ztunnel" {
   namespace        = var.istio_namespace
   create_namespace = true
   version          = var.istio_helm_chart_version
-  timeout          = 1800
+  timeout          = 3600
 }
 
 resource "helm_release" "istio_ingressgateway" {
@@ -87,7 +87,7 @@ resource "helm_release" "istio_ingressgateway" {
   namespace        = "istio-ingress"
   create_namespace = true
   version          = var.istio_helm_chart_version
-  timeout          = 1800
+  timeout          = 3600
 
   depends_on = [
     helm_release.istio_base, 
@@ -104,7 +104,7 @@ resource "helm_release" "istio_egressgateway" {
   create_namespace = true
   version          = var.istio_helm_chart_version
   values = [ file("./helm/istio/egress_gateway_values.yaml") ]
-  timeout          = 1800
+  timeout          = 3600
 
   depends_on = [
     helm_release.istio_base, 

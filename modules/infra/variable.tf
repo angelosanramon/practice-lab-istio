@@ -43,6 +43,11 @@ variable "prometheus_blackbox_exporter_helm_chart_version" {
   default     = "9.1.0"
 }
 
+variable "prometheus_operator_crds_helm_chart_version" {
+  description = "Prometheus operator crds helm chart version."
+  default     = "17.0.2"
+}
+
 variable "argocd_namespace" {
   description = "Namespace to install ArgoCD."
   default     = "argocd"
@@ -150,5 +155,25 @@ variable "vault_unseal_keys_reader_user" {
 
 variable "vault_unseal_keys_reader_password" {
   description = "Password for the unseal keys reader user."
+  default     = ""
+}
+
+variable "jenkins_namespace" {
+  description = "Namespace to install Jenkins."
+  default     = "jenkins"
+}
+
+variable "jenkins_helm_chart_version" {
+  description = "Jenkins helm chart version."
+  default     = "5.8.5"
+}
+
+variable "jenkins_admin_user" {
+  description = "Jenkins admin username."
+  default     = "jenkins-admin"
+}
+
+variable "jenkins_admin_password" {
+  description = "Jenkins admin password."
   default     = ""
 }

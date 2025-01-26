@@ -26,7 +26,7 @@ resource "helm_release" "cert_manager" {
   namespace        = var.cert_manager_namespace
   version          = var.cert_manager_helm_chart_version
   values           = [ file("./helm/cert-manager/values.yaml") ]
-  timeout          = 1800
+  timeout          = 3600
 
   depends_on = [
     kubernetes_namespace.cert_manager

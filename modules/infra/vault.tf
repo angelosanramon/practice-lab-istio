@@ -123,7 +123,7 @@ resource "helm_release" "vault" {
   namespace        = var.vault_namespace
   version          = var.vault_helm_chart_version
   values           = [file("./helm/vault/values.yaml")]
-  timeout          = 1800
+  timeout          = 3600
 
   depends_on = [
     kubernetes_namespace.vault,

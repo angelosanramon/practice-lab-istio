@@ -30,7 +30,7 @@ resource "helm_release" "kiali_operator" {
   version          = var.kiali_helm_chart_version
   create_namespace = true
   values           = [ file("./helm/kiali/kiali_operator_values.yaml") ]
-  timeout          = 1800
+  timeout          = 3600
 
   set {
     name  = "cr.spec.external_services.grafana.auth.username"

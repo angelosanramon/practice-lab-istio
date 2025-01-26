@@ -29,7 +29,7 @@ resource "helm_release" "jaeger" {
   namespace        = var.jaeger_namespace
   version          = var.jaeger_helm_chart_version
   values           = [ file("./helm/jaeger/values.yaml") ]
-  timeout          = 1800
+  timeout          = 3600
 
   depends_on = [ kubernetes_namespace.jaeger ]
 }

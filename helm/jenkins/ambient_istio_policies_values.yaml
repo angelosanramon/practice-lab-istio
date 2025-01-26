@@ -1,0 +1,50 @@
+k8s_gateways:
+  - name: jenkins-gateway
+    namespace: jenkins
+    gatewayClassName: istio
+    listeners:
+      - name: jenkins-http
+        port: 80
+        protocol: HTTP
+        hostname: jenkins.asrnet.com
+        allowedRoutes:
+          namespaces:
+            from: Same
+      - name: jenkins-https
+        port: 443
+        protocol: HTTPS
+        hostname: jenkins.asrnet.com
+        tls:
+          mode: Terminate
+          certificateRefs:
+            - name: jenkins.asrnet.com-cert
+        allowedRoutes:
+          namespaces:
+            from: Same
+
+k8s_httproutes:
+  - name: jenkins-httproute-http
+    namespace: jenkins
+    parentRefs:
+      - name: jenkins-gateway
+        sectionName: jenkins-http
+    hostnames:
+      - jenkins.asrnet.com
+    rules:
+      - filters:
+          - type: RequestRedirect
+            requestRedirect:
+              scheme: https
+              statusCode: 301
+  - name: jenkins-httproute-https
+    namespace: jenkins
+    parentRefs:
+      - name: jenkins-gateway
+        sectionName: jenkins-https
+    hostnames:
+      - jenkins.asrnet.com
+    rules:
+      - backendRefs:
+          - name: jenkins
+            port: 8080
+

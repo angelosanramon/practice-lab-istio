@@ -28,9 +28,9 @@ spec:
   secretTemplate:
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "argocd,bookinfo,grafana,kiali,jaeger,prometheus,keycloak,vault"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "argocd,bookinfo,grafana,kiali,jaeger,prometheus,keycloak,vault,jenkins"
       reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "argocd,bookinfo,grafana,kiali,jaeger,prometheus,keycloak,vault"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "argocd,bookinfo,grafana,kiali,jaeger,prometheus,keycloak,vault,jenkins"
   commonName: asrnet.com
   dnsNames:
     - asrnet.com
@@ -427,5 +427,53 @@ spec:
   depends_on = [
     helm_release.cert_manager,
     helm_release.vault
+  ]
+}
+
+resource "kubectl_manifest" "jenkins_issuer" {
+  yaml_body = <<YAML
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: jenkins-issuer
+  namespace: jenkins
+spec:
+  ca:
+    secretName: asrnet.com-ca-cert
+  YAML
+
+  depends_on = [
+    helm_release.cert_manager,
+    helm_release.jenkins
+  ]
+}
+
+resource "kubectl_manifest" "jenkins_cert" {
+  yaml_body = <<YAML
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: jenkins-cert
+  namespace: jenkins
+spec:
+  secretName: jenkins.asrnet.com-cert
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "istio-ingress"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "istio-ingress"
+  commonName: jenkins.asrnet.com
+  dnsNames:
+    - jenkins.asrnet.com
+  issuerRef:
+    name: jenkins-issuer
+    kind: Issuer
+    group: cert-manager.io
+  YAML
+
+  depends_on = [
+    helm_release.cert_manager,
+    helm_release.jenkins
   ]
 }

@@ -27,7 +27,7 @@ resource "helm_release" "bookinfo" {
   chart            = "./helm/bookinfo"
   namespace        = var.bookinfo_namespace
   version          = var.bookinfo_helm_chart_version
-  timeout          = 1800
+  timeout          = 3600
 
   depends_on = [ kubernetes_namespace.bookinfo ]
 }

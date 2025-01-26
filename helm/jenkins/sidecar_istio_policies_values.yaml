@@ -1,0 +1,45 @@
+gateways:
+  - name: jenkins-istio-ingress-gateway
+    namespace: jenkins
+    selector:
+      istio: ingressgateway
+    servers:
+      - hosts:
+          - jenkins.asrnet.com
+        port:
+          name: http
+          number: 80
+          protocol: HTTP
+        tls:
+          httpsRedirect: true
+      - hosts:
+          - jenkins.asrnet.com
+        port:
+          name: https
+          number: 443
+          protocol: HTTPS
+        tls:
+          mode: SIMPLE
+          credentialName: jenkins.asrnet.com-cert
+
+virtual_services:
+  - name: jenkins-ingress-virtual-service
+    namespace: vault
+    gateways:
+      - jenkins-istio-ingress-gateway
+    hosts:
+      - jenkins.asrnet.com
+      - jenkins.jenkins.svc.cluster.local
+    http:
+      - route:
+          - destination:
+              host: jenkins.jenkins.svc.cluster.local
+              port:
+                number: 8080
+
+# This policy is configures workloads in the namespace to accept only encrypted requests with TLS. The policy applies to all services in the mesh in the namespace.
+peer_authentications:
+  - name: jenkins-inbound-mtls-peer-authentication
+    namespace: jenkins
+    mtls:
+      mode: STRICT

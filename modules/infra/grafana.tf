@@ -34,7 +34,7 @@ resource "helm_release" "grafana" {
   namespace        = var.grafana_namespace
   version          = var.grafana_helm_chart_version
   values           = [ file("./helm/grafana/values.yaml") ]
-  timeout          = 1800
+  timeout          = 3600
 
   set {
     name  = "adminUser"

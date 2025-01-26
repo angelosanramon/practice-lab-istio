@@ -32,7 +32,7 @@ resource "helm_release" "prometheus" {
   values           = [ 
     file(var.istio_mesh_mode == "ambient" ? "./helm/prometheus/ambient_prometheus_values.yaml" : "./helm/prometheus/sidecar_prometheus_values.yaml")
   ]
-  timeout          = 1800
+  timeout          = 3600
 
   depends_on = [ kubernetes_namespace.prometheus ]
 }
@@ -44,9 +44,20 @@ resource "helm_release" "prometheus_blackbox_exporter" {
   chart            = "prometheus-blackbox-exporter"
   namespace        = var.prometheus_namespace
   version          = var.prometheus_blackbox_exporter_helm_chart_version
-  create_namespace = true
   values           = [ file("./helm/prometheus/prometheus_blackbox_exporter_values.yaml") ]
-  timeout          = 1800
+  timeout          = 3600
+
+  depends_on = [ helm_release.prometheus ]
+}
+
+resource "helm_release" "prometheus-operator-crds" {
+  name             = "prometheus-operator-crds"
+
+  repository       = "https://prometheus-community.github.io/helm-charts"
+  chart            = "prometheus-operator-crds"
+  namespace        = var.prometheus_namespace
+  version          = var.prometheus_operator_crds_helm_chart_version
+  timeout          = 3600
 
   depends_on = [ helm_release.prometheus ]
 }
